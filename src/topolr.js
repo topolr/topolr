@@ -6339,28 +6339,31 @@
         });
     };
     delegater.event = function (module) {
-        var r = [];
+        var r = [],md=[];
         for (var i = 0; i < module._binders._data.length; i++) {
             if (module.dom.get(0).contains(module._binders._data[i].get(0))) {
                 r.push(module._binders._data[i]);
+                md.push(module._binders._data[i].get(0));
             }
         }
         module._binders._data = r;
         module.dom.find("[data-bind]").each(function () {
-            var q = {}, types = topolr(this).dataset("bind").split(" ");
-            for (var m in types) {
-                var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
-                q[etype] = back;
-                if (!qt.events || qt.events && !qt.events[etype]) {
-                    module.dom.bind(etype, delegater.handler);
+            if(md.indexOf(this)===-1) {
+                var q = {}, types = topolr(this).dataset("bind").split(" ");
+                for (var m in types) {
+                    var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
+                    q[etype] = back;
+                    if (!qt.events || qt.events && !qt.events[etype]) {
+                        module.dom.bind(etype, delegater.handler);
+                    }
                 }
+                if (!this.datasets) {
+                    this.datasets = {};
+                }
+                this.removeAttribute("data-bind");
+                this.datasets["-eventback-"] = q;
+                module._binders._data.push(topolr(this));
             }
-            if (!this.datasets) {
-                this.datasets = {};
-            }
-            this.removeAttribute("data-bind");
-            this.datasets["-eventback-"] = q;
-            module._binders._data.push(topolr(this));
         });
     };
     delegater.delegate = function (module) {
