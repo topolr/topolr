@@ -6339,7 +6339,13 @@
         });
     };
     delegater.event = function (module) {
-        module._binders._data=[];
+        var r = [];
+        for (var i = 0; i < module._binders._data.length; i++) {
+            if (module.dom.get(0).contains(module._binders._data[i].get(0))) {
+                r.push(module._binders._data[i]);
+            }
+        }
+        module._binders._data = r;
         module.dom.find("[data-bind]").each(function () {
             var q = {}, types = topolr(this).dataset("bind").split(" ");
             for (var m in types) {
