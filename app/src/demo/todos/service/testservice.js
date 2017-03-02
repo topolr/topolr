@@ -88,6 +88,8 @@ Module({
         }
         if (t !== 0) {
             this.data.ischeckall = false;
+        }else{
+            this.data.ischeckall=true;
         }
         this.data.totalleft = t;
         this.setStorage("todos", this.data);

@@ -1,5 +1,5 @@
 /*!
- * topolr JavaScript library v1.3.8
+ * topolr JavaScript library v1.3.9
  * http://topolr.org/
  * Author WangJinliang(hou80houzhu)
  * licensed under the MIT licenses(https://github.com/topolr/topolr/blob/master/LICENSE).
@@ -5323,7 +5323,6 @@
         var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: []}, current = [];
         template.diffNode(newnode, oldnode, current, r);
         oldnode.length = 0;
-//        console.log(r);
         return r;
     };
     template.diffNode = function (a, b, current, r) {
@@ -5421,9 +5420,7 @@
     };
     template.checkProps = function (a, b) {
         var ap = Object.keys(a), bp = Object.keys(b), r = {
-            remove: [],
-            add: [],
-            edit: []
+            final:a
         }, t = ap.length, isedit = false;
         if (ap.length < bp.length) {
             t = bp.length;
@@ -5433,24 +5430,13 @@
             if (key) {
                 if (b[key] === undefined) {
                     isedit = true;
-                    r.add.push({
-                        key: key,
-                        val: b[key]
-                    });
                 } else {
                     if (a[key] !== b[key]) {
                         isedit = true;
-                        r.edit.push({
-                            key: key,
-                            val: a[key]
-                        });
                     }
                 }
             } else {
                 isedit = true;
-                r.remove.push({
-                    key: key
-                });
             }
         }
         if (isedit) {
@@ -5543,14 +5529,13 @@
                 t = t.childNodes[paths[tp] / 1];
             }
             var props = r.edit[i].props;
-            for (var tp = 0, lenp = props.add.length; tp < lenp; tp++) {
-                t.setAttribute(props.add[tp].key, props.add[tp].val);
+            var attributes=Array.prototype.slice.call(t.attributes);
+            for(var tp in props.final){
+                t.setAttribute(tp,props.final[tp]);
+                attributes.splice(attributes.indexOf(tp),1);
             }
-            for (var tp = 0, lenp = props.remove.length; tp < lenp; tp++) {
-                t.removeAttribute(props.remove[tp].key);
-            }
-            for (var tp = 0, lenp = props.edit.length; tp < lenp; tp++) {
-                t.setAttribute(props.edit[tp].key, props.edit[tp].val);
+            for(var tp=0;tp<attributes.length;tp++){
+                t.removeAttribute(attributes[tp]);
             }
         }
         for (var i = 0, len = removes.length; i < len; i++) {
@@ -6287,7 +6272,6 @@
                     if (module["bind_" + name]) {
                         e.stopPropagation = function () {
                             this._ispropagation = true;
-                            Object.getPrototypeOf(e).stopPropagation.call(this);
                         };
                         module["bind_" + name].call(module, topolr(d), e);
                         if (e._ispropagation) {
@@ -6301,6 +6285,7 @@
             }
             d = d.parentNode;
         }
+        e.stopPropagation();
     };
     delegater.finder = function (module) {
         var r = [];
@@ -6354,30 +6339,22 @@
         });
     };
     delegater.event = function (module) {
-        for(var i=0;i<module._binders._data.length;i++){
-            var et=module._binders._data[i].get(0);
-            if(et.datasets && et.datasets["-eventback-"]){
-                et.datasets={};
-            }
-        }
         module._binders._data=[];
         module.dom.find("[data-bind]").each(function () {
-            if (!this.datasets || this.datasets && !this.datasets["-eventback-"]) {
-                var q = {}, types = topolr(this).dataset("bind").split(" ");
-                for (var m in types) {
-                    var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
-                    q[etype] = back;
-                    if (!qt.events || qt.events && !qt.events[etype]) {
-                        module.dom.bind(etype, delegater.handler);
-                    }
+            var q = {}, types = topolr(this).dataset("bind").split(" ");
+            for (var m in types) {
+                var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
+                q[etype] = back;
+                if (!qt.events || qt.events && !qt.events[etype]) {
+                    module.dom.bind(etype, delegater.handler);
                 }
-                if (!this.datasets) {
-                    this.datasets = {};
-                }
-                this.removeAttribute("data-bind");
-                this.datasets["-eventback-"] = q;
-                module._binders._data.push(topolr(this));
             }
+            if (!this.datasets) {
+                this.datasets = {};
+            }
+            this.removeAttribute("data-bind");
+            this.datasets["-eventback-"] = q;
+            module._binders._data.push(topolr(this));
         });
     };
     delegater.delegate = function (module) {
