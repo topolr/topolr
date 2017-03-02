@@ -1,7 +1,7 @@
 var topolr=require("topolr-util");
 var uglify=require("uglify-js");
 try {
-    var source=topolr.file(process.cwd() + "/app/topolr.js").readSync();
+    var source=topolr.file(process.cwd() + "/src/topolr.js").readSync();
     var a=source.match(/\/\*[\w\W]*?\*\//),comments=null;
     if(a){
         var comment=a[0];
