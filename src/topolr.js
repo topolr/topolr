@@ -3619,7 +3619,7 @@
         }
     };
     var appAgent = {
-        boot: function () {
+        boot: function (isWithHTML) {
             if (!app._done) {
                 var optionName = app.option.boot;
                 var ps = topolr.promise();
@@ -3627,7 +3627,9 @@
                     if (app.option.debug && app.option.map) {
                         topolr("body").dataset("builterId", app.option.map.id);
                     }
-                    topolr("body").html("");
+                    if(!isWithHTML) {
+                        topolr("body").html("");
+                    }
                     appAgent.setInfo();
                     app.option.debug && console.log("[topolr] version:0.10.4,debug:" + app.option.debug + ",basePath:" + app.option.basePath);
                     try {
