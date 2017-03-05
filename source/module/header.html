@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row fixedposition">
     <div class="span1-1">
         <div class="header">
             <div class="header-logo">
@@ -9,15 +9,11 @@
             <div class="header-slogan">A web framework</div>
             <div class="header-navs">
                 <div class="header-navs-con mid-fix">
-                    <div class="header-navs-item">item1</div>
-                    <div class="header-navs-item">item1</div>
-                    <div class="header-navs-item">item1</div>
-                    <div class="header-navs-item">
-                        <i class="fa fa-adn"></i> API
-                    </div>
-                    <div class="header-navs-item">
-                        <i class="fa fa-github"></i> github
-                    </div>
+                    <a class="header-navs-item" href="<%=data.pages.sitePath;%>"><i class="fa fa-home"></i> Home</a>
+                    <a class="header-navs-item" href="#"><i class="fa fa-rocket"></i> Tutorial</a>
+                    <a class="header-navs-item" href="#"><i class="fa fa-flag"></i> Blog</a>
+                    <a class="header-navs-item" href="<%=data.pages.sitePath;%>apis/util.html"><i class="fa fa-adn"></i> API</a>
+                    <a class="header-navs-item" href="#"><i class="fa fa-github"></i> Github</a>
                 </div>
             </div>
         </div>
