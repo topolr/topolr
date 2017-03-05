@@ -60,6 +60,9 @@
 }
 .topper{
   padding:50px 0 50px 0;
+  .topper-content{
+    padding:0 10px 0 10px;
+  }
 }
 .tools{
   background:white;
@@ -71,7 +74,7 @@
   .tools-item{
     .tools-item-logo{
       img{
-        width:80px;
+        width:70px;
       }
     }
     .tools-item-desc{}
@@ -84,6 +87,9 @@
   background-size:cover;
   color:white;
   padding:50px 0 50px 0;
+  .footer-item{
+    padding:0 10px 0 10px;
+  }
   .footer-logo{
     padding:40px 0 0 0;
     text-align: center;
@@ -179,6 +185,9 @@
       }
     }
   }
+}
+.inner{
+  padding:0 10px 0 10px;
 }
 .body{
   padding:50px 0 50px 0;

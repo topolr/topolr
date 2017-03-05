@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'tsf';
   src:
-    url('fonts/tsf.ttf?k3ywb8') format('truetype'),
-    url('fonts/tsf.woff?k3ywb8') format('woff'),
-    url('fonts/tsf.svg?k3ywb8#tsf') format('svg');
+          url('fonts/tsf.ttf?g11s6y') format('truetype'),
+          url('fonts/tsf.woff?g11s6y') format('woff'),
+          url('fonts/tsf.svg?g11s6y#tsf') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -818,6 +818,53 @@
 .fa-wpexplorer:before {
   content: "\f2de";
 }
+.fa-spinner4:before {
+  content: "\e97a";
+}
+.fa-spinner2:before {
+  content: "\e97b";
+}
+.fa-spinner3:before {
+  content: "\e97c";
+}
+.fa-spinner6:before {
+  content: "\e97f";
+}
+.fa-spinner7:before {
+  content: "\e980";
+}
+.fa-spinner8:before {
+  content: "\e981";
+}
+.fa-spinner9:before {
+  content: "\e982";
+}
+.fa-spinner10:before {
+  content: "\e983";
+}
+.fa-spinner11:before {
+  content: "\e984";
+}
+.fa-loop2:before {
+  content: "\ea2e";
+}
+.fa-checkbox-checked:before {
+  content: "\ea52";
+}
+.fa-checkbox-unchecked:before {
+  content: "\ea53";
+}
+.fa-radio-checked:before {
+  content: "\ea54";
+}
+.fa-radio-checked2:before {
+  content: "\ea55";
+}
+.fa-radio-unchecked:before {
+  content: "\ea56";
+}
+
+
 .fa-spin{
   display:inline-block;
   -webkit-animation:fa-spin 2s infinite linear;
