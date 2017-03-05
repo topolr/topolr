@@ -2,7 +2,6 @@
  * @packet demo.todos.todos;
  * @template demo.todos.template.temp;
  * @css demo.todos.style.todostyle; 
- * @css demo.todos.style.font;
  * @require demo.todos.service.testservice;
  */
 Module({

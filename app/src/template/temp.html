@@ -1,0 +1,11 @@
+<!--[codetab]-->
+<div class="codetabs">
+    <%for(var i in data.tabs){%>
+    <div class="codetab-title" data-find="title" data-bind="click:title"><%=data.tabs[i];%></div>
+    <%}%>
+</div>
+<div class="codecontent">
+    <%for(var i in data.codes){%>
+    <div class="codecontnet-code" data-find="content" @cache(data.codes[i])></div>
+    <%}%>
+</div>
