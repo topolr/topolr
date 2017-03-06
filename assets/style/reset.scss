@@ -9,10 +9,10 @@ abbr, address, cite, code,
 del, dfn, em, img, ins, kbd, q, samp,
 small, strong, sub, sup, var,
 b, i,
-dl, dt, dd, 
+dl, dt, dd,
 fieldset, form, label, legend,
 table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, figcaption, figure, 
+article, aside, canvas, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section, summary,
 time, mark, audio, video {
     margin:0;
@@ -26,15 +26,15 @@ time, mark, audio, video {
 html,body{
     margin:0;
     padding:0;
-    background:#FAFAFA;
+    background:#F3F7FA;
     font-size: $fontsize;
     font-family :Microsoft Yahei In-Bold,Microsoft Yahei,Apple LiGothic Medium;
-    color:#222222; 
+    color:#222222;
     width:100%;
     height:100%;
 }
 article,aside,details,figcaption,figure,
-footer,header,hgroup,menu,nav,section { 
+footer,header,hgroup,menu,nav,section {
     display:block;
 }
 blockquote, q {
@@ -59,7 +59,7 @@ ins {
 }
 mark {
     background-color:#ff9;
-    color:#000; 
+    color:#000;
     font-style:italic;
     font-weight:bold;
 }
@@ -77,7 +77,7 @@ table {
 hr {
     display:block;
     height:1px;
-    border:0;   
+    border:0;
     border-top:1px solid #cccccc;
     margin:1em 0;
     padding:0;
@@ -89,7 +89,7 @@ label{
 }
 
 .fix{
-    zoom : 1; 
+    zoom : 1;
 }
 .fix:before,.fix:after {
     content:"";
@@ -127,7 +127,7 @@ h3,.title_3{
     font-weight: normal;
 }
 h4,.title_4{
-    font-size: 21px;
+    font-size: 17px;
     line-height: 40px;
     font-weight: normal;
 }
@@ -148,7 +148,7 @@ p{
 }
 
 .fix{
-    zoom : 1; 
+    zoom : 1;
 }
 .fix:before,.fix:after {
     content:"";

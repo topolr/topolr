@@ -22,7 +22,7 @@ time, mark, audio, video {
 html, body {
   margin: 0;
   padding: 0;
-  background: #FAFAFA;
+  background: #F3F7FA;
   font-size: 14px;
   font-family: Microsoft Yahei In-Bold,Microsoft Yahei,Apple LiGothic Medium;
   color: #222222;
@@ -122,7 +122,7 @@ h3, .title_3 {
   font-weight: normal; }
 
 h4, .title_4 {
-  font-size: 21px;
+  font-size: 17px;
   line-height: 40px;
   font-weight: normal; }
 
@@ -212,14 +212,17 @@ p {
   padding: 0 0 50px 0; }
   .tools .tools-head {
     padding: 20px 0 20px 0;
-    color: #1c79a5;
     margin-bottom: 20px; }
-  .tools .tools-item .tools-item-logo img {
-    width: 70px; }
-  .tools .tools-item .tools-item-logo div {
-    line-height: 40px;
-    font-weight: 400;
-    font-size: 18px; }
+  .tools .tools-item {
+    padding: 0 10px 0 10px; }
+    .tools .tools-item .tools-item-logo img {
+      width: 70px; }
+    .tools .tools-item .tools-item-logo div {
+      line-height: 40px;
+      font-weight: 400;
+      font-size: 18px; }
+    .tools .tools-item .tools-item-desc {
+      text-align: left; }
 
 .footer {
   background-image: url(images/bg.png);
@@ -367,5 +370,20 @@ p {
         background: black; }
   .navsfixed.navsfixed-in {
     transform: translateY(0); }
+
+@media only screen and (max-width: 480px) {
+  .header .header-navs .header-navs-con {
+    line-height: 30px; }
+    .header .header-navs .header-navs-con .header-navs-item {
+      padding: 0 10px 0 10px; }
+
+  .navsfixed .navsfixed-logo {
+    margin: 5px 5px 0 5px; }
+  .navsfixed .navsfixed-items {
+    display: inline-block;
+    vertical-align: top;
+    line-height: 30px; }
+    .navsfixed .navsfixed-items .navsfixed-items-item {
+      padding: 5px 10px 5px 10px; } }
 
 /*# sourceMappingURL=page.css.map */
