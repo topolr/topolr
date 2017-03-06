@@ -27,7 +27,7 @@
 </head>
 <body>
 <@module name="subheader"/>
-<div class="row mid-fix body">
+<div class="row mid-fix body on480-row-1col">
     <div class="span1-5">
         <div class="sortlist">
             <%
@@ -51,8 +51,10 @@
         </div>
     </div>
     <div class="span4-5">
-        <div class="markdown-body">
-            <%=data.contentHTML;%>
+        <div style="padding:0 10px 0 10px;">
+            <div class="markdown-body">
+                <%=data.contentHTML;%>
+            </div>
         </div>
     </div>
 </div>

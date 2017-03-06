@@ -13,13 +13,15 @@ Module({
         this.render({
             logopath:sitePath+"assets/style/images/logo.png"
         });
-        $(window).bind("scroll",function () {
+        var nt=function () {
             if($("body").scrollTop()>height){
                 ths.show();
             }else{
                 ths.hide();
             }
-        });
+        };
+        $(window).bind("scroll",nt);
+        nt();
     },
     show:function () {
         this.dom.addClass("navsfixed-in");

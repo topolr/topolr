@@ -193,6 +193,7 @@
             background: white;
             display: inline-block;
             vertical-align: top;
+            margin-left:10px;
             img {
                 width: 100%;
             }
@@ -239,6 +240,7 @@
 }
 
 .sortlist {
+    padding:0 10px 10px 10px;
     .sortlist-item {
         .sortlist-item-title {
             line-height: 35px;
@@ -317,7 +319,18 @@
             }
         }
     }
+    .subheader {
+        .subheader-navs {
+            .subheader-navs-con {
+                line-height: 35px;
+                .subheader-navs-item {
+                    padding: 0 10px 0 10px;
+                }
+            }
+        }
+    }
     .navsfixed {
+        text-align: center;
         .navsfixed-logo {
             margin: 5px 5px 0 5px;
         }
@@ -329,5 +342,10 @@
                 padding: 5px 10px 5px 10px;
             }
         }
+    }
+    .sortlist{
+        padding-bottom:20px;
+        margin-bottom:10px;
+        border-bottom: 1px solid #D7D7D7;
     }
 }
