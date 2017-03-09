@@ -1,9 +1,3 @@
-/*!
- * topolr JavaScript library v1.3.9
- * http://topolr.org/
- * Author WangJinliang(hou80houzhu)
- * licensed under the MIT licenses(https://github.com/topolr/topolr/blob/master/LICENSE).
- */
 (function () {
     "use strict";
     var topolr = function (start) {
