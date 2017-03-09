@@ -1,0 +1,29 @@
+{
+  "name": "topolr",
+  "version": "1.3.10",
+  "description": "topolr frontend base library",
+  "main": "main.js",
+  "scripts": {
+    "topolr": "node bin/cli",
+    "build":"node bin/build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/topolr/topolr.git"
+  },
+  "keywords": [
+    "topolr",
+    "web",
+    "framework"
+  ],
+  "author": "WangJinliang(hou80houzhu)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/topolr/topolr/issues"
+  },
+  "homepage": "http://topolr.org/",
+  "dependencies": {
+    "topolr-util": "^0.1.17",
+    "uglify-js": "~2.5.0"
+  }
+}
