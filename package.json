@@ -16,7 +16,10 @@
     "web",
     "framework"
   ],
-  "author": "WangJinliang(hou80houzhu)",
+  "author": {
+    "name": "WangJinliang(hou80houzhu)",
+    "email": "hou80houzhu@vip.qq.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/topolr/topolr/issues"
