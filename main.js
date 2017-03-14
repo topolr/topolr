@@ -16,7 +16,7 @@ var main={
             desc:config.description,
             site:config.homepage,
             git:config.repository.url,
-            author:config.author
+            author:config.author.name
         };
     },
     getSourceCode:function () {
