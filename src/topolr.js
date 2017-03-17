@@ -1,5 +1,6 @@
 (function () {
     "use strict";
+    var topolrInfo="{{topolrInfo}}";
     var topolr = function (start) {
         return new dom(start);
     };
@@ -3625,7 +3626,7 @@
                         topolr("body").html("");
                     }
                     appAgent.setInfo();
-                    app.option.debug && console.log("[topolr] version:0.10.4,debug:" + app.option.debug + ",basePath:" + app.option.basePath);
+                    app.option.debug && console.log("[topolr] version:"+topolrInfo.version+",debug:" + app.option.debug + ",basePath:" + app.option.basePath);
                     try {
                         app._ready && app._ready();
                     } catch (e) {
