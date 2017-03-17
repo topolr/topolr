@@ -1,10 +1,10 @@
 /**
- * version 1.3.10
+ * version 1.4.0
  * desc topolr frontend base library
  * site http://topolr.org/
- * git git+https://github.com/topolr/topolr.git
+ * git https://github.com/topolr/topolr.git
  * author WangJinliang(hou80houzhu)
- * hash 8c32c9aba8e625d4acc69c6bb1be0124
+ * hash f94d6ce2a1c8bedb3f5978e1553a1fd4
  */
 (function () {
     "use strict";
@@ -5424,23 +5424,33 @@
     };
     template.checkProps = function (a, b) {
         var ap = Object.keys(a), bp = Object.keys(b), r = {
-            final:a
-        }, t = ap.length, isedit = false;
+                final:a
+            }, t = ap.length,
+            isedit = false,
+            ignores=["data-find","data-group","data-bind","data-group"];
         if (ap.length < bp.length) {
             t = bp.length;
         }
         for (var i = 0; i < t; i++) {
             var key = ap[i];
             if (key) {
-                if (b[key] === undefined) {
-                    isedit = true;
-                } else {
-                    if (a[key] !== b[key]) {
+                if(ignores.indexOf(key)!==-1){
+                    isedit=true;
+                    break;
+                }else{
+                    if (b[key] === undefined) {
                         isedit = true;
+                        break;
+                    } else {
+                        if (a[key] !== b[key]) {
+                            isedit = true;
+                            break;
+                        }
                     }
                 }
             } else {
                 isedit = true;
+                break;
             }
         }
         if (isedit) {
@@ -6292,13 +6302,7 @@
         e.stopPropagation();
     };
     delegater.finder = function (module) {
-        var r = [];
-        for (var i = 0; i < module._finders._data.length; i++) {
-            if (module.dom.get(0).contains(module._finders._data[i].get(0))) {
-                r.push(module._finders._data[i]);
-            }
-        }
-        module._finders._data = r;
+        module._finders._data.length=0;
         module.dom.find("[data-find]").each(function () {
             var _name = this.dataset.find;
             this.datasets || (this.datasets = {});
@@ -6314,13 +6318,7 @@
         });
     };
     delegater.group = function (module) {
-        var r = [];
-        for (var i = 0; i < module._groups._data.length; i++) {
-            if (module.dom.get(0).contains(module._groups._data[i].get(0))) {
-                r.push(module._groups._data[i]);
-            }
-        }
-        module._groups._data = r;
+        module._groups._data.length=0;
         module.dom.find("*[data-group]").each(function () {
             var name = topolr(this).dataset("group"), p = {name: name, items: {}}, qt = topolr(this);
             topolr(this).data("-group-", p).removeAttr("data-group").attr("group", name);
@@ -6343,31 +6341,25 @@
         });
     };
     delegater.event = function (module) {
-        var r = [],md=[];
         for (var i = 0; i < module._binders._data.length; i++) {
-            if (module.dom.get(0).contains(module._binders._data[i].get(0))) {
-                r.push(module._binders._data[i]);
-                md.push(module._binders._data[i].get(0));
-            }
+            module._binders._data[i].get(0).datasets["-eventback-"]={};
         }
-        module._binders._data = r;
+        module._binders._data.length=0;
         module.dom.find("[data-bind]").each(function () {
-            if(md.indexOf(this)===-1) {
-                var q = {}, types = topolr(this).dataset("bind").split(" ");
-                for (var m in types) {
-                    var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
-                    q[etype] = back;
-                    if (!qt.events || qt.events && !qt.events[etype]) {
-                        module.dom.bind(etype, delegater.handler);
-                    }
+            var q = {}, types = topolr(this).dataset("bind").split(" ");
+            for (var m in types) {
+                var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
+                q[etype] = back;
+                if (!qt.events || qt.events && !qt.events[etype]) {
+                    module.dom.bind(etype, delegater.handler);
                 }
-                if (!this.datasets) {
-                    this.datasets = {};
-                }
-                this.removeAttribute("data-bind");
-                this.datasets["-eventback-"] = q;
-                module._binders._data.push(topolr(this));
             }
+            if (!this.datasets) {
+                this.datasets = {};
+            }
+            this.removeAttribute("data-bind");
+            this.datasets["-eventback-"] = q;
+            module._binders._data.push(topolr(this));
         });
     };
     delegater.delegate = function (module) {
