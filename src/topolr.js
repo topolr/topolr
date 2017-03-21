@@ -1,14 +1,6 @@
-/**
- * version:1.4.0
- * desc:topolr frontend base library
- * site:http://topolr.org/
- * git:https://github.com/topolr/topolr.git
- * author:WangJinliang(hou80houzhu)
- * hash:702984827ae06900346df5e46cf93897
- */
 (function () {
     "use strict";
-    var topolrInfo={"version":"1.4.0"};
+    var topolrInfo="{{topolrInfo}}";
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6305,39 +6297,52 @@
     delegater.finder = function (module) {
         module._finders._data.length=0;
         module.dom.find("[data-find]").each(function () {
-            var _name = this.dataset.find;
-            this.datasets || (this.datasets = {});
-            this.datasets["-finder-"] = {name: _name};
+            var _name = this.dataset.find,_run=true;
             this.removeAttribute("data-find");
-            module._finders._data.push(topolr(this));
-            try {
-                module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
-            } catch (e) {
-                console.error("[topolr] view finder called error with module of " + module.type() + " Message:" + e.stack);
+            if(this.datasets&&this.datasets["-finder-"]&&this.datasets["-finder-"].name===_name){
+                _run=false;
             }
+            if(_run){
+                this.datasets || (this.datasets = {});
+                this.datasets["-finder-"] = {name: _name};
+                try {
+                    module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
+                } catch (e) {
+                    console.error("[topolr] view finder called error with module of " + module.type() + " Message:" + e.stack);
+                }
+            }
+            module._finders._data.push(topolr(this));
         });
     };
     delegater.group = function (module) {
         module._groups._data.length=0;
-        module.dom.find("*[data-group]").each(function () {
-            var name = topolr(this).dataset("group"), p = {name: name, items: {}}, qt = topolr(this);
-            topolr(this).data("-group-", p).removeAttr("data-group");
-            module._groups._data.push(topolr(this));
-            topolr(this).find("*[data-groupi]").each(function () {
-                p.items[topolr(this).dataset("groupi")] = topolr(this);
-                var _name = topolr(this).dataset("groupi");
+        module.dom.find("[data-group]").each(function() {
+            var _name=this.dataset.group,_run=true, p = {name: _name, items: {}},qt=topolr(this);
+            this.removeAttribute("data-group");
+            if(this.datasets&&this.datasets["-group-"]&&this.datasets["-group-"].name===_name){
+                _run=false;
+                p=this.datasets["-group-"];
+            }
+            topolr(this).find("[data-groupi]").each(function () {
+                var _iname=this.dataset.groupi;
                 topolr(this).data("-groupitem-", {
-                    name: _name,
+                    name: _iname,
                     group: qt
                 }).removeAttr("data-groupi");
+                p.items[_iname] = topolr(this);
             });
-            if (module["group_" + name]) {
-                try {
-                    module["group_" + name](topolr(this));
-                } catch (e) {
-                    console.error("[topolr] view groups called error with module of " + module.type() + " Message:" + e.stack);
+            if(_run){
+                this.datasets || (this.datasets = {});
+                this.datasets["-group-"] = p;
+                if (module["group_" + _name]) {
+                    try {
+                        module["group_" + _name](topolr(this));
+                    } catch (e) {
+                        console.error("[topolr] view groups called error with module of " + module.type() + " Message:" + e.stack);
+                    }
                 }
             }
+            module._groups._data.push(topolr(this));
         });
     };
     delegater.event = function (module) {
@@ -6995,13 +7000,22 @@
             }
         },
         original: function (methods) {
-            var a = Object.getPrototypeOf(this)[methods];
-            if (topolr.is.isFunction(a)) {
-                var b = Array.prototype.slice.call(arguments);
-                b.splice(0, 1);
-                return a.apply(this, b);
-            } else {
-                return a;
+            var target=this,t=0;
+            while(target.constructor!==Object&&t<2){
+                if(target[methods]){
+                    t++;
+                }
+                target=Object.getPrototypeOf(target);
+            }
+            if(t===2){
+                var a = target[methods];
+                if (topolr.is.isFunction(a)) {
+                    var b = Array.prototype.slice.call(arguments);
+                    b.splice(0, 1);
+                    return a.apply(this, b);
+                } else {
+                    return topolr.extend(true,{},a);
+                }
             }
         },
         parentsInvoke: function (methodName) {
