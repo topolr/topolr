@@ -1,6 +1,14 @@
+/**
+ * version:1.4.0
+ * desc:topolr frontend base library
+ * site:http://topolr.org/
+ * git:https://github.com/topolr/topolr.git
+ * author:WangJinliang(hou80houzhu)
+ * hash:702984827ae06900346df5e46cf93897
+ */
 (function () {
     "use strict";
-    var topolrInfo="{{topolrInfo}}";
+    var topolrInfo={"version":"1.4.0"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6301,7 +6309,6 @@
             this.datasets || (this.datasets = {});
             this.datasets["-finder-"] = {name: _name};
             this.removeAttribute("data-find");
-            this.setAttribute("find", _name);
             module._finders._data.push(topolr(this));
             try {
                 module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
@@ -6314,7 +6321,7 @@
         module._groups._data.length=0;
         module.dom.find("*[data-group]").each(function () {
             var name = topolr(this).dataset("group"), p = {name: name, items: {}}, qt = topolr(this);
-            topolr(this).data("-group-", p).removeAttr("data-group").attr("group", name);
+            topolr(this).data("-group-", p).removeAttr("data-group");
             module._groups._data.push(topolr(this));
             topolr(this).find("*[data-groupi]").each(function () {
                 p.items[topolr(this).dataset("groupi")] = topolr(this);
@@ -6322,7 +6329,7 @@
                 topolr(this).data("-groupitem-", {
                     name: _name,
                     group: qt
-                }).removeAttr("data-groupi").attr("groupi", _name);
+                }).removeAttr("data-groupi");
             });
             if (module["group_" + name]) {
                 try {
@@ -6981,11 +6988,11 @@
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
                     this.autodomc.update(Array.prototype.slice.call(arguments));
+                    delegater.delegate(this);
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
             }
-            delegater.delegate(this);
         },
         original: function (methods) {
             var a = Object.getPrototypeOf(this)[methods];
@@ -7451,8 +7458,8 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
+                delegater.delegate(this);
             }
-            delegater.delegate(this);
         },
         getChildrenByType: function (type) {
             var r = [];
