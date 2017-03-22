@@ -884,43 +884,6 @@
     topolr.promise = function (fn) {
         return new promise(fn);
     };
-    topolr.all = function () {
-        var ps = topolr.promise();
-        if (arguments.length > 0) {
-            var a = Array.prototype.slice.call(arguments);
-            var total = a.length;
-            for (var i = 0; i < a.length; i++) {
-                a[i].complete(function () {
-                    if (this.isResolve) {
-                        total = total - 1;
-                        if (total === 0) {
-                            ps.resolve();
-                        }
-                    }
-                });
-            }
-        }
-        return ps;
-    };
-    topolr.any = function () {
-        var ps = topolr.promise();
-        if (arguments.length > 0) {
-            var a = Array.prototype.slice.call(arguments);
-            var total = a.length, resolved = false;
-            for (var i = 0; i < a.length; i++) {
-                a[i].complete(function () {
-                    total = total - 1;
-                    if (this.isResolve) {
-                        resolved = true;
-                    }
-                    if (total === 0 && resolved) {
-                        ps.resolve();
-                    }
-                });
-            }
-        }
-        return ps;
-    };
 
     var dom = function (start) {
         this.nodes = [];
