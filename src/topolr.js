@@ -824,10 +824,6 @@
                     if (a instanceof promise) {
                         a._parent = ths;
                         a._finally = function (r) {
-                            if(a._state===1){
-                                ths._state=a._state;
-                                ths._queue.pass();
-                            }
                             ths._queue.next(r);
                         };
                     } else {
