@@ -791,6 +791,7 @@
                     if (a instanceof promise) {
                         a._parent = ths;
                         a._finally = function (r) {
+                            ths._state=a._state;
                             ths._queue.next(r);
                         };
                     } else {
@@ -817,6 +818,7 @@
                     if (a instanceof promise) {
                         a._parent = ths;
                         a._finally = function (r) {
+                            ths._state=a._state;
                             ths._queue.next(r);
                         };
                     } else {
