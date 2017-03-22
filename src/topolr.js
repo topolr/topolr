@@ -5204,7 +5204,11 @@
                             }
                             stacks.pop();
                         } else {
-                            !element && (text += a);
+                            if(!element){
+                                text+=a;
+                            }else{
+                                valuestart && (value += a);
+                            }
                         }
                         continue;
                     }
