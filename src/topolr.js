@@ -800,6 +800,7 @@
             }
         }, function (a, b) {
             ths._state = 1;
+            ths._queue.pass();
             ths._queue.next(b);
         }, fnt);
         return this;
