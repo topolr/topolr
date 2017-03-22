@@ -716,25 +716,15 @@
         this._always = null;
         this._error = null;
         this._notify = null;
-        this._finalerror = null;
-        this._isfinalerror = false;
         var ths = this;
         this._queue.complete(function (r) {
             if (ths._state === 1) {
-                var t = ths;
-                while (t) {
-                    t._isfinalerror = true;
-                    t = t._parent;
-                }
-            }
-            if (ths._isfinalerror) {
                 ths._error && ths._error.call(ths._scope, r);
             } else {
                 ths._complete && ths._complete.call(ths._scope, r);
             }
             ths._always && ths._always.call(ths._scope, r, {
-                state: ths._state,
-                error: ths._isfinalerror
+                state: ths._state
             });
             ths._finally && ths._finally.call(ths._scope, r, ths._state);
         });
@@ -792,7 +782,6 @@
                 if (fn) {
                     var a = fn.call(ths._scope, n);
                     if (a instanceof promise) {
-                        a._parent = ths;
                         a._finally = function (r) {
                             if(a._state===1){
                                 ths._state=a._state;
@@ -822,7 +811,6 @@
                 if (fn) {
                     var a = fn.call(ths._scope, n);
                     if (a instanceof promise) {
-                        a._parent = ths;
                         a._finally = function (r) {
                             ths._queue.next(r);
                         };
