@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:568b3a1a225f011eda3ff97c5b65a519
+ * hash:36fa70c7127e8b6ab52a41824068c961
  */
 (function () {
     "use strict";
@@ -559,6 +559,9 @@
         this.reset();
         return this;
     };
+    queue.prototype.pass=function() {
+        this.list.shift();
+    };
     queue._fire = function (result) {
         if (this.list.length > 0) {
             var a = this.list.shift(), ths = this;
@@ -721,25 +724,15 @@
         this._always = null;
         this._error = null;
         this._notify = null;
-        this._finalerror = null;
-        this._isfinalerror = false;
         var ths = this;
         this._queue.complete(function (r) {
             if (ths._state === 1) {
-                var t = ths;
-                while (t) {
-                    t._isfinalerror = true;
-                    t = t._parent;
-                }
-            }
-            if (ths._isfinalerror) {
                 ths._error && ths._error.call(ths._scope, r);
             } else {
                 ths._complete && ths._complete.call(ths._scope, r);
             }
             ths._always && ths._always.call(ths._scope, r, {
-                state: ths._state,
-                error: ths._isfinalerror
+                state: ths._state
             });
             ths._finally && ths._finally.call(ths._scope, r, ths._state);
         });
@@ -797,8 +790,11 @@
                 if (fn) {
                     var a = fn.call(ths._scope, n);
                     if (a instanceof promise) {
-                        a._parent = ths;
                         a._finally = function (r) {
+                            if(a._state===1){
+                                ths._state=a._state;
+                                ths._queue.pass();
+                            }
                             ths._queue.next(r);
                         };
                     } else {
@@ -823,7 +819,6 @@
                 if (fn) {
                     var a = fn.call(ths._scope, n);
                     if (a instanceof promise) {
-                        a._parent = ths;
                         a._finally = function (r) {
                             ths._queue.next(r);
                         };
@@ -884,43 +879,6 @@
     };
     topolr.promise = function (fn) {
         return new promise(fn);
-    };
-    topolr.all = function () {
-        var ps = topolr.promise();
-        if (arguments.length > 0) {
-            var a = Array.prototype.slice.call(arguments);
-            var total = a.length;
-            for (var i = 0; i < a.length; i++) {
-                a[i].complete(function () {
-                    if (this.isResolve) {
-                        total = total - 1;
-                        if (total === 0) {
-                            ps.resolve();
-                        }
-                    }
-                });
-            }
-        }
-        return ps;
-    };
-    topolr.any = function () {
-        var ps = topolr.promise();
-        if (arguments.length > 0) {
-            var a = Array.prototype.slice.call(arguments);
-            var total = a.length, resolved = false;
-            for (var i = 0; i < a.length; i++) {
-                a[i].complete(function () {
-                    total = total - 1;
-                    if (this.isResolve) {
-                        resolved = true;
-                    }
-                    if (total === 0 && resolved) {
-                        ps.resolve();
-                    }
-                });
-            }
-        }
-        return ps;
     };
 
     var dom = function (start) {
