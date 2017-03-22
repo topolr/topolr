@@ -551,6 +551,9 @@
         this.reset();
         return this;
     };
+    queue.prototype.pass=function() {
+        this.list.shift();
+    };
     queue._fire = function (result) {
         if (this.list.length > 0) {
             var a = this.list.shift(), ths = this;
@@ -791,7 +794,10 @@
                     if (a instanceof promise) {
                         a._parent = ths;
                         a._finally = function (r) {
-                            ths._state=a._state;
+                            if(a._state===1){
+                                ths._state=a._state;
+                                ths._queue.pass();
+                            }
                             ths._queue.next(r);
                         };
                     } else {
@@ -818,7 +824,10 @@
                     if (a instanceof promise) {
                         a._parent = ths;
                         a._finally = function (r) {
-                            ths._state=a._state;
+                            if(a._state===1){
+                                ths._state=a._state;
+                                ths._queue.pass();
+                            }
                             ths._queue.next(r);
                         };
                     } else {
