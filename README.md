@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/dt/topolr.svg?maxAge=2592000)](https://www.npmjs.com/package/topolr)
 [![license](https://img.shields.io/github/license/topolr/topolr.svg?maxAge=2592000)](https://github.com/topolr/topolr/blob/master/LICENSE)
 
-build the projects which develop by the topolr web framework.
+topolr web framework.
 
 ## Useage
 
