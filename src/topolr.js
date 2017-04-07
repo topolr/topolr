@@ -5554,7 +5554,7 @@
         var tp = temp.split(template.d);
         for (var index = 0; index < tp.length; index++) {
             var e = tp[index];
-            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")||'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
+            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
         }
         fn += "return __$$out$$;";
         if (app.option.debug) {
