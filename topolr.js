@@ -1,14 +1,14 @@
 /**
- * version:1.4.2
+ * version:1.4.4
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:9d434e7d8a3ee71c66bff72276ef56df
+ * hash:5cd07514b0494b77e2ab6985efe7849f
  */
 (function () {
     "use strict";
-    var topolrInfo={"version":"1.4.2"};
+    var topolrInfo={"version":"1.4.4"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5521,10 +5521,12 @@
         }
         for (var i = 0, len = r.removeAll.length; i < len; i++) {
             var t = dom.get(0);
-            var paths = r.removeAll[i].path.split(",");
-            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
-                if (t) {
-                    t = t.childNodes[paths[tp] / 1];
+            if(r.removeAll[i].path) {
+                var paths = r.removeAll[i].path.split(",");
+                for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
+                    if (t) {
+                        t = t.childNodes[paths[tp] / 1];
+                    }
                 }
             }
             if (t) {
@@ -5562,7 +5564,7 @@
         var tp = temp.split(template.d);
         for (var index = 0; index < tp.length; index++) {
             var e = tp[index];
-            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")||'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
+            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
         }
         fn += "return __$$out$$;";
         if (app.option.debug) {

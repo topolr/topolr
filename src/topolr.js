@@ -5513,10 +5513,12 @@
         }
         for (var i = 0, len = r.removeAll.length; i < len; i++) {
             var t = dom.get(0);
-            var paths = r.removeAll[i].path.split(",");
-            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
-                if (t) {
-                    t = t.childNodes[paths[tp] / 1];
+            if(r.removeAll[i].path) {
+                var paths = r.removeAll[i].path.split(",");
+                for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
+                    if (t) {
+                        t = t.childNodes[paths[tp] / 1];
+                    }
                 }
             }
             if (t) {
