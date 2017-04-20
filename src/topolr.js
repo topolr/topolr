@@ -5498,8 +5498,16 @@
             for (var tp in paths) {
                 t = t.childNodes[paths[tp] / 1];
             }
-            var props = r.edit[i].props;
-            var attributes=Array.prototype.slice.call(t.attributes);
+            var props = r.edit[i].props, attributes = [];
+            if(t.attributes.getNamedItem) {
+                for (var nt = 0; nt < t.attributes.length; nt++) {
+                    attributes.push(t.attributes[nt].nodeName);
+                }
+            }else{
+                for(var nt in t.attributes){
+                    attributes.push(nt);
+                }
+            }
             for(var tp in props.final){
                 t.setAttribute(tp,props.final[tp]);
                 attributes.splice(attributes.indexOf(tp),1);

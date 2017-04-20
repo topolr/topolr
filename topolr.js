@@ -1,14 +1,14 @@
 /**
- * version:1.4.4
+ * version:1.4.5
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:5cd07514b0494b77e2ab6985efe7849f
+ * hash:c56bc4aa4fe90657f5eef9eb4d3f0498
  */
 (function () {
     "use strict";
-    var topolrInfo={"version":"1.4.4"};
+    var topolrInfo={"version":"1.4.5"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5506,8 +5506,16 @@
             for (var tp in paths) {
                 t = t.childNodes[paths[tp] / 1];
             }
-            var props = r.edit[i].props;
-            var attributes=Array.prototype.slice.call(t.attributes);
+            var props = r.edit[i].props, attributes = [];
+            if(t.attributes.getNamedItem) {
+                for (var nt = 0; nt < t.attributes.length; nt++) {
+                    attributes.push(t.attributes[nt].nodeName);
+                }
+            }else{
+                for(var nt in t.attributes){
+                    attributes.push(nt);
+                }
+            }
             for(var tp in props.final){
                 t.setAttribute(tp,props.final[tp]);
                 attributes.splice(attributes.indexOf(tp),1);
