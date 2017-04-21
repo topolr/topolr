@@ -5510,7 +5510,10 @@
             }
             for(var tp in props.final){
                 t.setAttribute(tp,props.final[tp]);
-                attributes.splice(attributes.indexOf(tp),1);
+                var etm=attributes.indexOf(tp);
+                if(etm!==-1){
+                    attributes.splice(etm,1);
+                }
             }
             for(var tp=0;tp<attributes.length;tp++){
                 t.removeAttribute(attributes[tp]);
