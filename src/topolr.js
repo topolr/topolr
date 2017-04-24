@@ -5067,10 +5067,6 @@
         this.children = [];
         this.parent = null;
     };
-    node.filter = function (str) {
-        str = str.trim();
-        return str.replace(node.isNote, "").replace(node.isDoctype, "").replace(node.isXmlTag, "");
-    };
     node.repairTag = function (str) {
         var tags = ["br", "hr", "img", "input", "param", "link", "meta", "area", "base", "basefont", "param", "col", "frame", "embed", "keygen", "source"];
         for (var i = 0; i < tags.length; i++) {
