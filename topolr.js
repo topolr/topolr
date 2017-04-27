@@ -1,14 +1,14 @@
 /**
- * version:1.4.6
+ * version:1.4.7
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:a97a4a654f1c9f6f376f317df94245db
+ * hash:ec287da9ca9ad6c9c15d558d7e7995d1
  */
 (function () {
     "use strict";
-    var topolrInfo={"version":"1.4.6"};
+    var topolrInfo={"version":"1.4.7"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5075,10 +5075,6 @@
         this.children = [];
         this.parent = null;
     };
-    node.filter = function (str) {
-        str = str.trim();
-        return str.replace(node.isNote, "").replace(node.isDoctype, "").replace(node.isXmlTag, "");
-    };
     node.repairTag = function (str) {
         var tags = ["br", "hr", "img", "input", "param", "link", "meta", "area", "base", "basefont", "param", "col", "frame", "embed", "keygen", "source"];
         for (var i = 0; i < tags.length; i++) {
@@ -5517,7 +5513,9 @@
                 }
             }
             for(var tp in props.final){
-                t.setAttribute(tp,props.final[tp]);
+                if(t.getAttribute(tp)!==props.final[tp]) {
+                    t.setAttribute(tp, props.final[tp]);
+                }
                 var etm=attributes.indexOf(tp);
                 if(etm!==-1){
                     attributes.splice(etm,1);

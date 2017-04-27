@@ -5505,7 +5505,9 @@
                 }
             }
             for(var tp in props.final){
-                t.setAttribute(tp,props.final[tp]);
+                if(t.getAttribute(tp)!==props.final[tp]) {
+                    t.setAttribute(tp, props.final[tp]);
+                }
                 var etm=attributes.indexOf(tp);
                 if(etm!==-1){
                     attributes.splice(etm,1);
