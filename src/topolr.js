@@ -4115,7 +4115,11 @@
                         has = true;
                     }
                     if (str.indexOf("http:") === 0 || str.indexOf("data:") === 0 || str.indexOf("https:") === 0) {
-                        return str;
+                        if(has){
+                            return "url(\"" + str+ "\")";
+                        }else{
+                            return "url(" + str + ")";
+                        }
                     } else {
                         if (has) {
                             return "url(\"" + source.path.getRelativePath(path, str) + "\")";
@@ -4236,7 +4240,6 @@
                 }
             },
             getParentPath: function (path, times) {
-                console.log(">>  " + times);
                 if (times === undefined) {
                     times = 1;
                 }
