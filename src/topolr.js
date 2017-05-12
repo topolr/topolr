@@ -5228,25 +5228,14 @@
         return /\(\[-code-\]\)/.test(this.content);
     };
     var template = function (temp, macro, parameters, autodom) {
-        if (app.option.debug) {
-            var q = temp.match(template.h);
-            if (q) {
-                this._pid = q[0].substring(5, q[0].length - 4);
-                this._path = app.option.basePath + this._pid.replace(/\./g, "/") + ".js";
-            } else {
-                this._pid = "tempcompile/template-" + temp.length;
-                this._path = app.option.basePath + this._pid + ".js";
-            }
-        }
-        temp = template.cache(temp);
-        var a = template.precompile(temp, autodom);
-        this._scope = a.info;
-        this._code = template.code.call(this, a.template);
-        this._fn = template.compile(this._code, parameters);
+        var tinfo=template.getCompileInfo(temp,parameters,autodom);
+        this._scope = tinfo.info.info;
+        this._code = tinfo.tcode;
+        this._fn = tinfo.tfn;
         this._autodom = autodom;
         if (autodom) {
-            this._autocode = template.autocode.call(this, a.virtemplate);
-            this._autocodefn = template.autocompile(this._autocode, parameters);
+            this._autocode = tinfo.acode;
+            this._autocodefn = tinfo.afn;
         }
         this._session = null;
         this._caching = {};
@@ -5274,6 +5263,54 @@
     template.isDoctype = /\<\!DOCTYPE[\s\S]*?\>/g;
     template.isNote = /\<\!\-\-[\s\S]*?\-\-\>/g;
     template.isXmlTag = /\<\?[\s\S]*?\?\>/g;
+    template.compileCache=[];
+    template.getCompileInfo=function(temp,parameters,autodom){
+        var r=null;
+        for(var i=0;i<temp.compileCache.length;i++){
+            var item=temp.compileCache[i];
+            if(item.template===temp){
+                r=item;
+            }
+        }
+        if(!r){
+            var pid="",path="",scope="",tcode="",tfn=null,acode="",afn=null;
+            if (app.option.debug) {
+                var q = temp.match(template.h);
+                if (q) {
+                    pid = q[0].substring(5, q[0].length - 4);
+                    path = app.option.basePath + pid.replace(/\./g, "/") + ".js";
+                } else {
+                    pid = "tempcompile/template-" + temp.length;
+                    path = app.option.basePath + pid + ".js";
+                }
+            }
+            temp = template.cache(temp);
+            var a = template.precompile(temp, autodom);
+            scope = a.info;
+            tcode = template.code(a.template,path);
+            tfn = template.compile(tcode, parameters);
+            if (autodom) {
+                acode = template.autocode(a.virtemplate,path);
+                afn = template.autocompile(acode, parameters);
+            }
+            r={
+                template:template,
+                tcode:tcode,
+                tfn:tfn,
+                acode:acode,
+                afn:afn,
+                scope:scope,
+                info:a,
+                path:path
+            };
+        }else{
+            if(autodom&&!r.acode){
+                r.acode = template.autocode(r.info.virtemplate,r.path);
+                r.afn = template.autocompile(r.acode, parameters);
+            }
+        }
+        return r;
+    };
     template.filter = function (str) {
         str = str.trim();
         return str.replace(template.isNote, "").replace(template.isDoctype, "").replace(template.isXmlTag, "");
@@ -5557,7 +5594,7 @@
             return this.renderInContext(this._source, attrs.data);
         }
     };
-    template.code = function (temp) {
+    template.code = function (temp,path) {
         var fn = "", outp = "__$$out$$+";
         if (app.option.debug) {
             fn = "/* template source:\r\n" + temp + "*/\r\n\r\n";
@@ -5572,11 +5609,11 @@
         }
         fn += "return __$$out$$;";
         if (app.option.debug) {
-            fn += "//# sourceURL=" + this._path;
+            fn += "//# sourceURL=" + path;
         }
         return fn;
     };
-    template.autocode = function (temp) {
+    template.autocode = function (temp,path) {
         var fn = "", outp = "", cc = [], ee = [];
         var tp = temp.replace(template.a, "<%").replace(template.b, "%>").split(template.d);
         for (var index = 0; index < tp.length; index++) {
@@ -5618,7 +5655,7 @@
         });
         t += "return __$$r$$;";
         if (app.option.debug) {
-            t += "//# sourceURL=" + this._path.substring(0, this._path.length - 3) + "-autodom.js";
+            t += "//# sourceURL=" + path.substring(0, path.length - 3) + "-autodom.js";
         }
         return t;
     };
@@ -5970,22 +6007,6 @@
         return this._autodom;
     };
     template.prototype.renderInContext = function () {
-        var tp = [];
-        for (var i = 0; i < this._session.length; i++) {
-            tp.push(this._session[i]);
-        }
-        tp.splice(0, 3);
-        var ed = Array.prototype.slice.call(arguments);
-        var temp = ed.shift();
-        for (var i = 0; i < ed.length; i++) {
-            tp[i] = ed[i];
-        }
-        // var p = new template(temp, this._macrofn, this._parameters);
-        // var t = p.render.apply(p, tp);
-        // for (var i in p._caching) {
-        //     this._caching[i] = p._caching[i];
-        // }
-
         var tp = [];
         for (var i = 0; i < this._session.length; i++) {
             tp.push(this._session[i]);
