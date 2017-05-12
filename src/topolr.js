@@ -5281,9 +5281,9 @@
     template.isXmlTag = /\<\?[\s\S]*?\?\>/g;
     template.compileCache=[];
     template.getCompileInfo=function(temp,parameters,autodom){
-        var r=null;
-        for(var i=0;i<temp.compileCache.length;i++){
-            var item=temp.compileCache[i];
+        var r=null,tempstr=temp;
+        for(var i=0;i<template.compileCache.length;i++){
+            var item=template.compileCache[i];
             if(item.template===temp){
                 r=item;
             }
@@ -5302,6 +5302,7 @@
             }
             temp=template.cache(temp);
             var a = template.precompile(temp, autodom);
+            tcode=template.code(a.template,path);
             if (autodom) {
                 acode = template.autocode(a.virtemplate,path);
                 afn = template.autocompile(acode, parameters);
@@ -5312,11 +5313,11 @@
                 afn:afn
             };
             r={
-                template:template,
-                tcode:template.code(a.template,path),
+                template:tempstr,
+                info:a,
+                tcode:tcode,
                 acode:acode,
                 path:path,
-                info:a,
                 source:temp,
                 fns:[mt]
             };
@@ -5324,10 +5325,9 @@
             return {
                 acode:r.acode,
                 afn:mt.afn,
-                template:temp,
-                info:r.info,
                 tcode:r.tcode,
                 tfn:mt.tfn,
+                info:r.info,
                 path:r.path,
                 source:r.source
             }
@@ -5363,10 +5363,9 @@
             return {
                 acode:r.acode,
                 afn:mt.afn,
-                template:temp,
-                info:r.info,
                 tcode:r.tcode,
                 tfn:mt.tfn,
+                info:r.info,
                 path:r.path,
                 source:r.source
             }
@@ -6078,13 +6077,7 @@
         for (var i = 0; i < ed.length; i++) {
             tp[i] = ed[i];
         }
-        // var p = new template(temp, this._macrofn, this._parameters);
-        // var t = p.render.apply(p, tp);
-        var t=template.exceute.call(this, this._fn, tp);
-        // for (var i in p._caching) {
-        //     this._caching[i] = p._caching[i];
-        // }
-        return t;
+        return template.exceute.call(this, this._fn, tp);
     };
     topolr.template = function (temp, macro, parameters, autodom) {
         return new template(temp, macro, parameters, autodom);
