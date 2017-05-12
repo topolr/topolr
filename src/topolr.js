@@ -5651,7 +5651,7 @@
             return this.renderInContext(attrs.template);
         },
         self: function (attrs, renderbody, hasbody) {
-            return this.renderInContext(this._source, attrs.data);
+            return template.exceute.call(this, this._fn, [attrs.data]);
         }
     };
     template.code = function (temp,path) {
@@ -6077,7 +6077,12 @@
         for (var i = 0; i < ed.length; i++) {
             tp[i] = ed[i];
         }
-        return template.exceute.call(this, this._fn, tp);
+        var p = new template(temp, this._macrofn, this._parameters);
+        var t = p.render.apply(p, tp);
+        for (var i in p._caching) {
+            this._caching[i] = p._caching[i];
+        }
+        return t;
     };
     topolr.template = function (temp, macro, parameters, autodom) {
         return new template(temp, macro, parameters, autodom);
