@@ -5980,11 +5980,28 @@
         for (var i = 0; i < ed.length; i++) {
             tp[i] = ed[i];
         }
-        var p = new template(temp, this._macrofn, this._parameters);
-        var t = p.render.apply(p, tp);
-        for (var i in p._caching) {
-            this._caching[i] = p._caching[i];
+        // var p = new template(temp, this._macrofn, this._parameters);
+        // var t = p.render.apply(p, tp);
+        // for (var i in p._caching) {
+        //     this._caching[i] = p._caching[i];
+        // }
+
+        var tp = [];
+        for (var i = 0; i < this._session.length; i++) {
+            tp.push(this._session[i]);
         }
+        tp.splice(0, 3);
+        var ed = Array.prototype.slice.call(arguments);
+        var temp = ed.shift();
+        for (var i = 0; i < ed.length; i++) {
+            tp[i] = ed[i];
+        }
+        // var p = new template(temp, this._macrofn, this._parameters);
+        // var t = p.render.apply(p, tp);
+        var t=template.exceute.call(this, this._fn, tp);
+        // for (var i in p._caching) {
+        //     this._caching[i] = p._caching[i];
+        // }
         return t;
     };
     topolr.template = function (temp, macro, parameters, autodom) {
