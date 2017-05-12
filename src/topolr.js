@@ -150,6 +150,22 @@
         },
         isElement: function (e) {
             return e && e.nodeType === 1 && e.nodeName;
+        },
+        isSameArray:function(a,b){
+            if (a === b) {
+                return true;
+            } else if (a.length === b.length) {
+                var isok = false;
+                for (var i = 0; i < a.length; a++) {
+                    if (b.indexOf(a[i]) === -1) {
+                        isok = true;
+                        break;
+                    }
+                }
+                return !isok;
+            } else {
+                return false;
+            }
         }
     };
     var serialize = {
@@ -5241,7 +5257,7 @@
         this._caching = {};
         this._macrofn = macro || {};
         this._isupdate = false;
-        this._source = temp;
+        this._source = tinfo.source;
         this._parameters = parameters;
         topolr.extend(this._macrofn, template.globalMacro);
     };
@@ -5273,7 +5289,7 @@
             }
         }
         if(!r){
-            var pid="",path="",scope="",tcode="",tfn=null,acode="",afn=null;
+            var pid="",path="",tcode="",tfn=null,acode="",afn=null;
             if (app.option.debug) {
                 var q = temp.match(template.h);
                 if (q) {
@@ -5284,32 +5300,77 @@
                     path = app.option.basePath + pid + ".js";
                 }
             }
-            temp = template.cache(temp);
+            temp=template.cache(temp);
             var a = template.precompile(temp, autodom);
-            scope = a.info;
-            tcode = template.code(a.template,path);
-            tfn = template.compile(tcode, parameters);
             if (autodom) {
                 acode = template.autocode(a.virtemplate,path);
                 afn = template.autocompile(acode, parameters);
             }
+            var mt={
+                parameters:parameters,
+                tfn:template.compile(tcode, parameters),
+                afn:afn
+            };
             r={
                 template:template,
-                tcode:tcode,
-                tfn:tfn,
+                tcode:template.code(a.template,path),
                 acode:acode,
-                afn:afn,
-                scope:scope,
+                path:path,
                 info:a,
-                path:path
+                source:temp,
+                fns:[mt]
             };
+            template.compileCache.push(r);
+            return {
+                acode:r.acode,
+                afn:mt.afn,
+                template:temp,
+                info:r.info,
+                tcode:r.tcode,
+                tfn:mt.tfn,
+                path:r.path,
+                source:r.source
+            }
         }else{
-            if(autodom&&!r.acode){
-                r.acode = template.autocode(r.info.virtemplate,r.path);
-                r.afn = template.autocompile(r.acode, parameters);
+            var mt=null;
+            for(var m=0;m<r.fns.length;m++){
+                var fn=r.fns[m];
+                if(is.isSameArray(fn.parameters,parameters)){
+                    mt=fn;
+                    break;
+                }
+            }
+            if(!mt){
+                var _afn=null,_acode="";
+                if(autodom){
+                    _acode=template.autocode(r.info.virtemplate,r.path);
+                    _afn=template.autocompile(_acode, parameters);
+                }
+                r.acode=_acode;
+                r.fns.push({
+                    parameters:parameters,
+                    tfn:template.compile(r.tcode,parameters),
+                    afn:_afn
+                });
+            }else{
+                if(autodom&&!r.acode){
+                    r.acode=template.autocode(r.info.virtemplate,r.path);
+                }
+                if(autodom&&!mt.afn){
+                    mt.afn=template.autocompile(_acode, parameters);
+                }
+            }
+            return {
+                acode:r.acode,
+                afn:mt.afn,
+                template:temp,
+                info:r.info,
+                tcode:r.tcode,
+                tfn:mt.tfn,
+                path:r.path,
+                source:r.source
             }
         }
-        return r;
     };
     template.filter = function (str) {
         str = str.trim();
