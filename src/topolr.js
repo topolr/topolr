@@ -5281,7 +5281,7 @@
     template.d = /<%|%>/g;
     template.e = /^=.*;$/;
     template.f = />[\s]+</g;
-    template.g = /\{\{.*\}\}/;
+    template.g = /<%[\s\S]*%>/;
     template.h = /\<\!\-\-[\s\S]*?\-\-\>/g;
     template.j = /\{\{|\}\}/;
     template.i = /\r\n/g;
@@ -5314,6 +5314,7 @@
                 }
             }
             temp = template.cache(temp);
+            temp=template.beatySyntax.parse(temp);
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
             if (autodom) {
@@ -5382,6 +5383,49 @@
                 path: r.path,
                 source: r.source
             }
+        }
+    };
+    template.beatySyntax={
+        syntaxs:{
+            "defaults":function (str) {
+                return "<%="+str.substring(2,str.length-2)+";%>";
+            },
+            "each":function (str) {
+                var a=str.split(" ");
+                a.shift();
+                var dataname=a.shift();
+                a.shift();
+                var keyname=a.shift();
+                var indexname=a.shift();
+                return "<%for(var "+indexname+"=0;"+indexname+"<"+dataname+".length;"+indexname+"++){ var "+keyname+"="+dataname+"["+indexname+"];%>";
+            },
+            "/each":function (str) {
+                return "<%}%>";
+            },
+            "/if":function () {
+                return "<%}%>";
+            },
+            "if":function (str) {
+                var b=str.substring(2,str.length-2);
+                var a=b.split(" ");
+                a.shift();
+                return "<%if("+a.join(" ")+"){%>";
+            }
+        },
+        parse:function (strs) {
+            return strs.replace(/\{\{[\s\S]+?\}\}/g,function (str) {
+                var a=str.substring(2,str.length-2);
+                var b=a.split(" ").shift();
+                try {
+                    if (template.beatySyntax.syntaxs[b]) {
+                        return template.beatySyntax.syntaxs[b](a);
+                    } else {
+                        return template.beatySyntax.syntaxs.defaults(str);
+                    }
+                }catch (e){
+                    console.log(e)
+                }
+            });
         }
     };
     template.filter = function (str) {
@@ -5911,7 +5955,7 @@
                 for (var tpp in st) {
                     var np = st[tpp];
                     if (template.g.test(np)) {
-                        var qpp = np.split(template.j), cpp = "";
+                        var qpp = np.split(template.d), cpp = "";
                         for (var ip = 1; ip <= qpp.length; ip++) {
                             if (ip % 2 === 0) {
                                 if (qpp[ip - 1] !== "") {
@@ -5926,9 +5970,9 @@
                             }
                         }
                         var npp = (cpp.length > 0 ? cpp.substring(0, cpp.length - 1) : "''");
-                        parameter += tpp + ":" + npp + ",";
+                        parameter += tpp + ":" + npp.substring(1,npp.length-1) + ",";
                     } else {
-                        parameter += tpp + ":'" + st[tpp] + "',";
+                        parameter += tpp + ":'" + st[tpp].substring(1,st[tpp].length-1) + "',";
                     }
                 }
                 result[i].parameter = "{" + (parameter.length > 0 ? parameter.substring(0, parameter.length - 1) : parameter) + "}";
