@@ -5390,35 +5390,54 @@
             "defaults":function (str) {
                 return "<%="+str.substring(2,str.length-2)+";%>";
             },
-            "each":function (str) {
-                var a=str.split(" ");
+            "map":function(str){
+                var dataname=str.shift();
                 a.shift();
+                var keyname=a.shift()||"$value";
+                var indexname=a.shift()||"$key";
+                return "<%for(var "+indexname+" in "+dataname+"){ var "+keyname+"="+dataname+"["+indexname+"];%>";
+            },
+            "/map":function(){
+                return "<%}%>";
+            },
+            "list":function (a) {
+                console.log(a);
                 var dataname=a.shift();
                 a.shift();
-                var keyname=a.shift();
-                var indexname=a.shift();
-                return "<%for(var "+indexname+"=0;"+indexname+"<"+dataname+".length;"+indexname+"++){ var "+keyname+"="+dataname+"["+indexname+"];%>";
+                var keyname=a.shift()||"$item";
+                var indexname=a.shift()||"$index";
+                return "<%for(var "+indexname+"=0,len="+dataname+".length;"+indexname+"<len;"+indexname+"++){ var "+keyname+"="+dataname+"["+indexname+"];%>";
             },
-            "/each":function (str) {
+            "/list":function (str) {
                 return "<%}%>";
+            },
+            "if":function (str) {
+                return "<%if("+str.join(" ")+"){%>";
+            },
+            "elseif":function (str) {
+                return "<%}else if("+str.join(" ")+"){%>";
+            },
+            "else":function () {
+                return "<%}else{%>";
             },
             "/if":function () {
                 return "<%}%>";
             },
-            "if":function (str) {
-                var b=str.substring(2,str.length-2);
-                var a=b.split(" ");
-                a.shift();
-                return "<%if("+a.join(" ")+"){%>";
+            "break":function(){
+                return "<%break;%>";
+            },
+            "set":function(str){
+                return "<%var "+str.join(" ")+"%>";
             }
         },
         parse:function (strs) {
             return strs.replace(/\{\{[\s\S]+?\}\}/g,function (str) {
                 var a=str.substring(2,str.length-2);
-                var b=a.split(" ").shift();
+                var b=a.split(" ");
+                var c=b.shift();
                 try {
-                    if (template.beatySyntax.syntaxs[b]) {
-                        return template.beatySyntax.syntaxs[b](a);
+                    if (template.beatySyntax.syntaxs[c]) {
+                        return template.beatySyntax.syntaxs[c](b);
                     } else {
                         return template.beatySyntax.syntaxs.defaults(str);
                     }
