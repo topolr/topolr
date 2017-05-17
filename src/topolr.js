@@ -5286,7 +5286,7 @@
     template.d = /<%|%>/g;
     template.e = /^=.*;$/;
     template.f = />[\s]+</g;
-    template.g = /\{\{.*\}\}/;
+    template.g = /<%[\s\S]*%>/;
     template.h = /\<\!\-\-[\s\S]*?\-\-\>/g;
     template.j = /\{\{|\}\}/;
     template.i = /\r\n/g;
@@ -5320,6 +5320,8 @@
             }
             temp = template.cache(temp);
             temp=template.propset(temp);
+            temp=template.beatySyntax.parse(temp);
+
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
             if (autodom) {
@@ -5388,6 +5390,68 @@
                 path: r.path,
                 source: r.source
             }
+        }
+    };
+    template.beatySyntax={
+        syntaxs:{
+            "defaults":function (str) {
+                return "<%="+str.substring(2,str.length-2)+";%>";
+            },
+            "map":function(str){
+                var dataname=str.shift();
+                a.shift();
+                var keyname=a.shift()||"$value";
+                var indexname=a.shift()||"$key";
+                return "<%for(var "+indexname+" in "+dataname+"){ var "+keyname+"="+dataname+"["+indexname+"];%>";
+            },
+            "/map":function(){
+                return "<%}%>";
+            },
+            "list":function (a) {
+                console.log(a);
+                var dataname=a.shift();
+                a.shift();
+                var keyname=a.shift()||"$item";
+                var indexname=a.shift()||"$index";
+                return "<%for(var "+indexname+"=0,len="+dataname+".length;"+indexname+"<len;"+indexname+"++){ var "+keyname+"="+dataname+"["+indexname+"];%>";
+            },
+            "/list":function (str) {
+                return "<%}%>";
+            },
+            "if":function (str) {
+                return "<%if("+str.join(" ")+"){%>";
+            },
+            "elseif":function (str) {
+                return "<%}else if("+str.join(" ")+"){%>";
+            },
+            "else":function () {
+                return "<%}else{%>";
+            },
+            "/if":function () {
+                return "<%}%>";
+            },
+            "break":function(){
+                return "<%break;%>";
+            },
+            "set":function(str){
+                return "<%var "+str.join(" ")+"%>";
+            }
+        },
+        parse:function (strs) {
+            return strs.replace(/\{\{[\s\S]+?\}\}/g,function (str) {
+                var a=str.substring(2,str.length-2);
+                var b=a.split(" ");
+                var c=b.shift();
+                try {
+                    if (template.beatySyntax.syntaxs[c]) {
+                        return template.beatySyntax.syntaxs[c](b);
+                    } else {
+                        return template.beatySyntax.syntaxs.defaults(str);
+                    }
+                }catch (e){
+                    console.log(e)
+                }
+            });
         }
     };
     template.filter = function (str) {
@@ -5684,7 +5748,8 @@
         var tp = temp.split(template.d);
         for (var index = 0; index < tp.length; index++) {
             var e = tp[index];
-            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
+            // index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
+            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=" + JSON.stringify(e) + ";");
         }
         fn += "return __$$out$$;";
         if (app.option.debug) {
@@ -5917,7 +5982,7 @@
                 for (var tpp in st) {
                     var np = st[tpp];
                     if (template.g.test(np)) {
-                        var qpp = np.split(template.j), cpp = "";
+                        var qpp = np.split(template.d), cpp = "";
                         for (var ip = 1; ip <= qpp.length; ip++) {
                             if (ip % 2 === 0) {
                                 if (qpp[ip - 1] !== "") {
@@ -5932,9 +5997,9 @@
                             }
                         }
                         var npp = (cpp.length > 0 ? cpp.substring(0, cpp.length - 1) : "''");
-                        parameter += tpp + ":" + npp + ",";
+                        parameter += tpp + ":" + npp.substring(1,npp.length-1) + ",";
                     } else {
-                        parameter += tpp + ":'" + st[tpp] + "',";
+                        parameter += tpp + ":'" + st[tpp].substring(1,st[tpp].length-1) + "',";
                     }
                 }
                 result[i].parameter = "{" + (parameter.length > 0 ? parameter.substring(0, parameter.length - 1) : parameter) + "}";
