@@ -4941,6 +4941,9 @@
         }
         return this._instanceId;
     };
+    adapt.prototype.hashCode=function(){
+        return this.hash;
+    };
     var factory = function () {
         this._mapping = {
             "adapt": adapt
@@ -5052,6 +5055,7 @@
         var clazz = this._mapping[name];
         if (clazz) {
             obj = new clazz();
+            obj.hash=util.uuid();
             obj.option = topolr.extend({}, topolr.json.clone(clazz.prototype.option), option);
         }
         return obj;
@@ -5256,7 +5260,7 @@
     tnode.prototype.hasCode = function () {
         return /\(\[-code-\]\)/.test(this.content);
     };
-    var template = function (temp, macro, parameters, autodom) {
+    var template = function (temp, macro, parameters, autodom,renderId) {
         var tinfo = template.getCompileInfo(temp, parameters, autodom);
         this._scope = tinfo.info.info;
         this._code = tinfo.tcode;
@@ -5272,6 +5276,7 @@
         this._isupdate = false;
         this._source = tinfo.source;
         this._parameters = parameters;
+        this._renderId=renderId;
         topolr.extend(this._macrofn, template.globalMacro);
     };
     template.z = /\<\!\-\-\([0-9a-zA-Z-_]*?\)\-\-\>/;
@@ -5314,6 +5319,7 @@
                 }
             }
             temp = template.cache(temp);
+            temp=template.propset(temp);
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
             if (autodom) {
@@ -5968,6 +5974,13 @@
             return {template: str, virtemplate: str, info: []};
         }
     };
+    template.propset=function(str){
+        return str.replace(/data-find=['"][\s\S]+?['"]/g,function (str) {
+            return "data-find='<%=this._prop(\""+str.substring(11,str.length-1)+"\");%>'";
+        }).replace(/data-bind=['"][\s\S]+?['"]/g,function (str) {
+            return "data-bind='<%=this._prop(\""+str.substring(11,str.length-1)+"\");%>'";
+        });
+    };
     template.cache = function (str) {
         return str.replace(template.ch, function (e) {
             var k = e.substring(7, e.length - 1);
@@ -5994,6 +6007,9 @@
         }
         this._caching[id] = data;
         return id;
+    };
+    template.prototype._prop=function(name){
+        return util.hashCode(this._renderId+name);
     };
     template.prototype._macro = function (num, attr) {
         var n = this._scope[num], ths = this;
@@ -6099,8 +6115,8 @@
         }
         return t;
     };
-    topolr.template = function (temp, macro, parameters, autodom) {
-        return new template(temp, macro, parameters, autodom);
+    topolr.template = function (temp, macro, parameters, autodom,renderId) {
+        return new template(temp, macro, parameters, autodom,renderId);
     };
     topolr.setTemplateGlobalMacro = function (key, fn) {
         if (arguments.length === 1) {
@@ -6123,10 +6139,10 @@
         };
     };
 
-    var autodomc = function (dom, temp, macro, paramters, dataarray) {
+    var autodomc = function (dom, temp, macro, paramters, dataarray,renderId) {
         this.dom = dom;
         if (is.isString(temp)) {
-            this.tempt = topolr.template(temp, macro, paramters, true);
+            this.tempt = topolr.template(temp, macro, paramters, true,renderId);
         } else {
             this.tempt = temp;
         }
@@ -6147,8 +6163,8 @@
             this[i] = null;
         }
     };
-    query.prototype.autodom = function (temp, macro, paramters, dataarray) {
-        return new autodomc(this, temp, macro, paramters, dataarray);
+    query.prototype.autodom = function (temp, macro, paramters, dataarray,renderId) {
+        return new autodomc(this, temp, macro, paramters, dataarray,renderId);
     };
 
     var module = {
@@ -6384,24 +6400,24 @@
         e.stopPropagation();
     };
     delegater.finder = function (module) {
-        module._finders._data.length = 0;
-        module.dom.find("[data-find]").each(function () {
-            var _name = this.dataset.find, _run = true;
-            this.removeAttribute("data-find");
-            if (this.datasets && this.datasets["-finder-"] && this.datasets["-finder-"].name === _name) {
-                _run = false;
-            }
-            if (_run) {
-                this.datasets || (this.datasets = {});
-                this.datasets["-finder-"] = {name: _name};
-                try {
-                    module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
-                } catch (e) {
-                    console.error("[topolr] view finder called error with module of " + module.type() + " Message:" + e.stack);
-                }
-            }
-            module._finders._data.push(topolr(this));
-        });
+        // module._finders._data.length = 0;
+        // module.dom.find("[data-find]").each(function () {
+        //     var _name = this.dataset.find, _run = true;
+        //     this.removeAttribute("data-find");
+        //     if (this.datasets && this.datasets["-finder-"] && this.datasets["-finder-"].name === _name) {
+        //         _run = false;
+        //     }
+        //     if (_run) {
+        //         this.datasets || (this.datasets = {});
+        //         this.datasets["-finder-"] = {name: _name};
+        //         try {
+        //             module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
+        //         } catch (e) {
+        //             console.error("[topolr] view finder called error with module of " + module.type() + " Message:" + e.stack);
+        //         }
+        //     }
+        //     module._finders._data.push(topolr(this));
+        // });
     };
     delegater.group = function (module) {
         module._groups._data.length = 0;
@@ -6435,10 +6451,10 @@
         });
     };
     delegater.event = function (module) {
-        for (var i = 0; i < module._binders._data.length; i++) {
-            module._binders._data[i].get(0).datasets["-eventback-"] = {};
-        }
-        module._binders._data.length = 0;
+        // for (var i = 0; i < module._binders._data.length; i++) {
+        //     module._binders._data[i].get(0).datasets["-eventback-"] = {};
+        // }
+        // module._binders._data.length = 0;
         module.dom.find("[data-bind]").each(function () {
             var q = {}, types = topolr(this).dataset("bind").split(" ");
             for (var m in types) {
@@ -6451,9 +6467,9 @@
             if (!this.datasets) {
                 this.datasets = {};
             }
-            this.removeAttribute("data-bind");
+            // this.removeAttribute("data-bind");
             this.datasets["-eventback-"] = q;
-            module._binders._data.push(topolr(this));
+            // module._binders._data.push(topolr(this));
         });
     };
     delegater.delegate = function (module) {
@@ -7056,10 +7072,10 @@
             try {
                 var n = Array.prototype.slice.call(arguments);
                 if (ths.autodom) {
-                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n);
+                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n,ths.hashCode());
                     delegater.delegate(ths);
                 } else {
-                    var tep = topolr.template(ths.template, ths.marcos, ["data"]);
+                    var tep = topolr.template(ths.template, ths.marcos, ["data"],ths.hashCode());
                     n.unshift(ths.dom);
                     tep.renderTo.apply(tep, n);
                     delegater.delegate(ths);
@@ -7194,17 +7210,18 @@
             }
         },
         finders: function (name) {
-            var r = topolr();
-            for (var i = 0; i < this._finders._data.length; i++) {
-                if (arguments.length === 1) {
-                    if (this._finders._data[i].data("-finder-") && this._finders._data[i].data("-finder-").name === name) {
-                        r.add(this._finders._data[i]);
-                    }
-                } else {
-                    r.add(this._finders._data[i]);
-                }
-            }
-            return r;
+            return this.dom.find("[data-find='"+util.hashCode(this.hashCode()+name)+"']");
+            // var r = topolr();
+            // for (var i = 0; i < this._finders._data.length; i++) {
+            //     if (arguments.length === 1) {
+            //         if (this._finders._data[i].data("-finder-") && this._finders._data[i].data("-finder-").name === name) {
+            //             r.add(this._finders._data[i]);
+            //         }
+            //     } else {
+            //         r.add(this._finders._data[i]);
+            //     }
+            // }
+            // return r;
         },
         binders: function (name) {
             var r = topolr();
@@ -7352,9 +7369,9 @@
                                         return "<" + prps.tagName + " class='" + prps.fullClassName + "' data-parent-view='" + ths.getId() + "' data-view='" + type + "' data-view-id='" + (id !== undefined && id !== null ? id : (ths.getId() + "-" + ths.children.length)) + "' data-option='" + (option || "") + "'></" + prps.tagName + ">";
                                     }
                                 }, ths.marcos);
-                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom);
+                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom,ths.hashCode());
                                 if (ths.autodom) {
-                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option]);
+                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option],ths.hashCode());
                                 } else {
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
                                 }
