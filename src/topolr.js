@@ -459,6 +459,17 @@
                 hash = hash & hash;
             }
             return hash;
+        },
+        setReadOnlyProps:function (objn, obj) {
+            for (var i in obj) {
+                Object.defineProperty(objn, i, {
+                    enumerable: false,
+                    configurable: false,
+                    writable: false,
+                    value: obj[i]
+                });
+            }
+            return objn;
         }
     };
     topolr.json = json, topolr.is = is, topolr.browser = browser, topolr.prefix = prefix, topolr.util = util;
@@ -4154,7 +4165,7 @@
                 };
             },
             html: function (path, txt) {
-                txt = txt.replace(packet.f, "><").replace(packet.i, "").replace(packet.k, "").replace(packet.l, "");
+                txt = txt.replace(packet.regs.f, "><").replace(packet.regs.i, "").replace(packet.regs.k, "").replace(packet.regs.l, "");
                 txt = txt.replace(/src=['"].+?['"]/g, function (a) {
                     a = a.trim();
                     if (a.indexOf("<%") === -1) {
@@ -4173,10 +4184,10 @@
             template: function (path, txt) {
                 txt = source.parser.html(path, txt);
                 var _dommapping = {};
-                var p = txt.split(packet.isNotep), b = txt.match(packet.isNotes);
+                var p = txt.split(packet.regs.isNotep), b = txt.match(packet.regs.isNotes);
                 for (var j = 0; j < b.length; j++) {
                     var c = b[j].substring(5, b[j].length - 4);
-                    _dommapping[c] = p[j + 1].replace(packet.isNotec, "");
+                    _dommapping[c] = p[j + 1].replace(packet.regs.isNotec, "");
                 }
                 return _dommapping;
             }
@@ -4423,27 +4434,29 @@
     var packet = function (packetName) {
         return packet.run.call(this, packetName);
     };
-    packet.i = /\r\n/g;
-    packet.k = /\r/g;
-    packet.l = /\n/g;
-    packet.f = />[\s]+</g;
-    packet.isdot = /\./g;
-    packet.issuffix = /\[.*\]/g;
-    packet.isNote = /\/\*[\w\W]*?\*\//;
-    packet.isNoteall = /\/\*[\w\W]*?\*\//g;
-    packet.isInfo = /@([\s\S]*?);/g;
-    packet.isPacketTag = /["\']@[A-Za-z0-9_\[\]-]+\.[A-Za-z0-9_-]*["\']/g;
-    packet.isCurrentTag = /["\']@\.[A-Za-z0-9_-]+["\']/g;
-    packet.isMapTag = /["\']@[A-Za-z0-9_\[\]-]+\.[A-Za-z\[\]0-9_-]*["\']/g;
-    packet.isPacket = /["\']@[A-Za-z0-9_\[\]-]+["\']/g;
-    packet.isOther = /["\']\\@[A-Za-z0-9_-]+["\']/g;
-    packet.isNotep = /\<\!\-\-\[[0-9a-zA-Z-_]*?\]\-\-\>/;
-    packet.isNotes = /\<\!\-\-\[[0-9a-zA-Z-_]*?\]\-\-\>/g;
-    packet.isNotec = /\<\!\-\-[\s\S]*?\-\-\>/g;
-    packet.isNotet = /\<\!\-\-\[@[\s\S]*?;\]\-\-\>/;
-    packet.isNotets = /\<\!\-\-\[@[\s\S]*?;\]\-\-\>/g;
-    packet.isCssPath = /url\(.+?\)/g;
-    packet.issuffixp = /\[|\]/;
+    packet.regs = {
+        i: /\r\n/g,
+        k: /\r/g,
+        l: /\n/g,
+        f: />[\s]+</g,
+        isdot: /\./g,
+        issuffix: /\[.*\]/g,
+        isNote: /\/\*[\w\W]*?\*\//,
+        isNoteall: /\/\*[\w\W]*?\*\//g,
+        isInfo: /@([\s\S]*?);/g,
+        isPacketTag: /["\']@[A-Za-z0-9_\[\]-]+\.[A-Za-z0-9_-]*["\']/g,
+        isCurrentTag: /["\']@\.[A-Za-z0-9_-]+["\']/g,
+        isMapTag: /["\']@[A-Za-z0-9_\[\]-]+\.[A-Za-z\[\]0-9_-]*["\']/g,
+        isPacket: /["\']@[A-Za-z0-9_\[\]-]+["\']/g,
+        isOther: /["\']\\@[A-Za-z0-9_-]+["\']/g,
+        isNotep: /\<\!\-\-\[[0-9a-zA-Z-_]*?\]\-\-\>/,
+        isNotes: /\<\!\-\-\[[0-9a-zA-Z-_]*?\]\-\-\>/g,
+        isNotec: /\<\!\-\-[\s\S]*?\-\-\>/g,
+        isNotet: /\<\!\-\-\[@[\s\S]*?;\]\-\-\>/,
+        isNotets: /\<\!\-\-\[@[\s\S]*?;\]\-\-\>/g,
+        isCssPath: /url\(.+?\)/g,
+        issuffixp: /\[|\]/
+    };
     packet.requiremapping = {};
     packet.packetDone = [];
     packet.mapping = {
@@ -4587,19 +4600,19 @@
         return k;
     };
     packet.getPacketInfo = function (str) {
-        var a = str.match(packet.isNote), basepath = app.option.basePath, n = new packetInfo();
+        var a = str.match(packet.regs.isNote), basepath = app.option.basePath, n = new packetInfo();
         if (a && a.length > 0) {
             var b = a[0];
-            var tp = b.match(packet.isInfo);
+            var tp = b.match(packet.regs.isInfo);
             for (var o = 0; o < tp.length; o++) {
                 var a = tp[o], d = a.split(" ");
                 if (d.length >= 2) {
                     var key = d[0].substring(1, d[0].length),
                         value = d[1][d[1].length - 1] === ";" ? d[1].substring(0, d[1].length - 1) : d[1],
-                        suffix = value.split(packet.issuffixp)[1] || "",
+                        suffix = value.split(packet.regs.issuffixp)[1] || "",
                         shortname = value.split(":")[1] ? value.split(":")[1] : value.split(".").pop();
                     if (key !== "image" && key !== "text" && key !== "map") {
-                        value = value.replace(packet.issuffix, "");
+                        value = value.replace(packet.regs.issuffix, "");
                     }
                     value = value.split(":")[0];
                     var path = source.getPacketPath(value, packet.mapping[key]);
@@ -4658,7 +4671,7 @@
         return n;
     };
     packet.replacePacketNames = function (info, code) {
-        return code.replace(packet.isPacketTag, function (str) {
+        return code.replace(packet.regs.isPacketTag, function (str) {
             var a = str.split("\."), index = 0, key = a[1].substring(0, a[1].length - 1), index = a[0].substring(2);
             if (info._packets_[index]) {
                 if (info._packets_[index].indexOf("*") === -1) {
@@ -4671,16 +4684,16 @@
             } else {
                 throw Error("[topolr] packet can not find with tag of " + str + ",packet is " + info.packet);
             }
-        }).replace(packet.isCurrentTag, function (str) {
+        }).replace(packet.regs.isCurrentTag, function (str) {
             return str[0] + info.packet + "." + str.split("\.")[1];
-        }).replace(packet.isPacket, function (str) {
+        }).replace(packet.regs.isPacket, function (str) {
             var index = str.substring(2, str.length - 1);
             if (info._packets_[index]) {
                 return str[0] + info._packets_[index] + str[str.length - 1];
             } else {
                 throw Error("[topolr] packet can not find with tag of " + str + ",packet is " + info.packet);
             }
-        }).replace(packet.isMapTag, function (str) {
+        }).replace(packet.regs.isMapTag, function (str) {
             var a = str.substring(1, str.length - 1).split(".");
             var b = a.shift().substring(1);
             var c = info._packets_[b];
@@ -4692,7 +4705,7 @@
             } else {
                 throw Error("[topolr] packet can not find with tag of " + str + ",packet is " + info.packet);
             }
-        }).replace(packet.isOther, function (str) {
+        }).replace(packet.regs.isOther, function (str) {
             return str.substring(1);
         });
     };
@@ -4943,17 +4956,6 @@
             "adapt": adapt
         };
     };
-    factory.set = function (objn, obj) {
-        for (var i in obj) {
-            Object.defineProperty(objn, i, {
-                enumerable: false,
-                configurable: false,
-                writable: false,
-                value: obj[i]
-            });
-        }
-        return objn;
-    };
     factory.prototype.def = function (obj) {
         if (!obj.extend) {
             obj.extend = ["adapt"];
@@ -5013,8 +5015,8 @@
                 }
             }
         }
-        factory.set(parent, {
-            "__info__": factory.set({}, {
+        util.setReadOnlyProps(parent, {
+            "__info__": util.setReadOnlyProps({}, {
                 name: (obj.packet ? obj.packet + "." + obj.name : obj.name),
                 short: obj.name || "",
                 packet: obj.packet || "",
@@ -5049,12 +5051,7 @@
         var clazz = this._mapping[name];
         if (clazz) {
             obj = new clazz();
-            Object.defineProperty(obj, "_uuid", {
-                enumerable: false,
-                configurable: false,
-                writable: false,
-                value: util.uuid()
-            });
+            util.setReadOnlyProps(obj,{_uuid:util.uuid()});
             obj.option = topolr.extend({}, topolr.json.clone(clazz.prototype.option), option);
         }
         return obj;
@@ -5102,6 +5099,9 @@
         this.children = [];
         this.parent = null;
     };
+    node.filter = function (str) {
+        return str.trim().replace(template.regs.isNote, "").replace(template.regs.isDoctype, "").replace(template.regs.isXmlTag, "");
+    };
     node.repairTag = function (str) {
         var tags = ["br", "hr", "img", "input", "param", "link", "meta", "area", "base", "basefont", "param", "col", "frame", "embed", "keygen", "source"];
         for (var i = 0; i < tags.length; i++) {
@@ -5114,7 +5114,7 @@
     };
     node.parse = function (str) {
         if (str && str !== "") {
-            str = template.filter(str);
+            str = node.filter(str);
             str = node.repairTag(str);
             var stacks = [], nodes = [], current = null;
             var tagname = "", tagendname = "", propname = "", value = "", text = "";
@@ -5394,6 +5394,193 @@
             return "data-cache='<%=this._cache(" + k + ");%>'";
         });
     };
+    template.precompile = function (str, autodom) {
+        str = str.replace(template.regs.a, "<").replace(template.regs.b, ">").replace(template.regs.h, "").replace(template.regs.f, "><").replace(template.regs.i, "").replace(template.regs.k, "").replace(template.regs.l, "");
+        if (str.indexOf("<@") !== -1) {
+            var i = -1, current = "", state = "start", tagname = "", propname = "", propnamestart, propvalue = "";
+            var isbody = true, endtagname = "", props = {}, tagindex = 0, tagendindex = 0, endtagindex = 0,
+                endtagendindex = 0, obj = [];
+            while (i < str.length) {
+                i++;
+                current = str[i];
+                if (state === "start" && current === "<" && str[i + 1] === "@") {
+                    state = "tagstart";
+                    tagindex = i;
+                    continue;
+                }
+                if (state === "tagstart" && current === "@") {
+                    state = "tagname";
+                    tagname = "";
+                    props = {};
+                    continue;
+                }
+                if (state === "start" && current === "<" && str[i + 1] === "/" && str[i + 2] === "@") {
+                    endtagindex = i;
+                    state = "endtag";
+                    endtagname = "";
+                    i += 2;
+                    continue;
+                }
+                if (state === "endtag" && current === ">") {
+                    state = "start";
+                    endtagendindex = i + 1;
+                    obj.push({
+                        type: "endtag",
+                        tagname: endtagname,
+                        start: endtagindex,
+                        end: endtagendindex
+                    });
+                    continue;
+                }
+                if (state === "tagname" && current === " ") {
+                    state = "propname";
+                    propname = "";
+                    continue;
+                }
+                if (state === "tagname" && (current === "/" || current === ">")) {
+                    if (current === ">") {
+                        tagendindex = i + 1;
+                        state = "start";
+                        isbody = true;
+                    } else if (current === "/") {
+                        tagendindex = i + 2;
+                        state = "start";
+                        isbody = false;
+                    }
+                    if (tagname !== "") {
+                        obj.push({
+                            type: "tag",
+                            tagname: tagname,
+                            props: props,
+                            body: isbody,
+                            start: tagindex,
+                            end: tagendindex
+                        });
+                    }
+                    continue;
+                }
+                if (state === "propname" && current === "=") {
+                    state = "propvalue";
+                    continue;
+                }
+                if (state === "propvalue" && (current === "'" || current === "\"")) {
+                    state = "propvalueing";
+                    propnamestart = current;
+                    propvalue = "";
+                    continue;
+                }
+                if (state === "propvalueing" && current === propnamestart) {
+                    state = "tagname";
+                    props[propname] = propvalue;
+                    continue;
+                }
+                if (state === "endtag") {
+                    endtagname += current;
+                }
+                if (state === "tagname") {
+                    tagname += current;
+                }
+                if (state === "propname") {
+                    propname += current;
+                }
+                if (state === "propvalueing") {
+                    propvalue += current;
+                }
+            }
+            var index = 0, start = 0, end = 0, inner = false, current = null, result = [], t = "", vt = "", startin = 0,
+                info = [];
+            for (var i in obj) {
+                if (obj[i].type === "tag" && obj[i].body === false && inner === false) {
+                    obj[i].bodystr = "";
+                    obj[i].from = obj[i].start;
+                    obj[i].to = obj[i].end;
+                    result.push(obj[i]);
+                }
+                if (obj[i].type === "tag" && obj[i].body === true) {
+                    inner = true;
+                    if (current === null) {
+                        current = obj[i];
+                        current.from = obj[i].start;
+                    }
+                    if (index === 0) {
+                        start = obj[i].start;
+                        end = obj[i].end;
+                    }
+                    index++;
+                }
+                if (obj[i].type === "endtag") {
+                    index--;
+                    if (index === 0) {
+                        current.to = obj[i].end;
+                        current.bodystr = str.substring(end, obj[i].start);
+                        result.push(current);
+                        current = null;
+                        inner = false;
+                    }
+                }
+            }
+            for (var i in result) {
+                var st = result[i].props, parameter = "";
+                for (var tpp in st) {
+                    var np = st[tpp];
+                    if (template.regs.g.test(np)) {
+                        var qpp = np.split(template.regs.d), cpp = "";
+                        for (var ip = 1; ip <= qpp.length; ip++) {
+                            if (ip % 2 === 0) {
+                                if (qpp[ip - 1] !== "") {
+                                    cpp += qpp[ip - 1] + "+";
+                                }
+                            } else {
+                                if (qpp[ip - 1] !== "") {
+                                    cpp += "'" + qpp[ip - 1] + "'+";
+                                } else {
+                                    cpp += qpp[ip - 1];
+                                }
+                            }
+                        }
+                        var npp = (cpp.length > 0 ? cpp.substring(0, cpp.length - 1) : "''");
+                        parameter += tpp + ":" + npp.substring(1, npp.length - 1) + ",";
+                    } else {
+                        parameter += tpp + ":'" + st[tpp].substring(1, st[tpp].length - 1) + "',";
+                    }
+                }
+                result[i].parameter = "{" + (parameter.length > 0 ? parameter.substring(0, parameter.length - 1) : parameter) + "}";
+                info.push({
+                    name: result[i].tagname,
+                    body: result[i].bodystr,
+                    parameter: result[i].parameter
+                });
+                var a = str.substring(startin, result[i].from);
+                t += a;
+                if (autodom) {
+                    vt += a;
+                    vt += "<%var tp=this._macro(" + i + (result[i].parameter === "" ? "" : "," + result[i].parameter) + ");" +
+                        "if(tp){" +
+                        "var c=__$$$node$$$.parse(tp);" +
+                        "for(var ____$$$$i=0;____$$$$i<c.length;____$$$$i++){" +
+                        "{{node}}.children.push(c[____$$$$i])" +
+                        "}" +
+                        "}else{" +
+                        "{{node}}.children.push({content:''})" +
+                        "}" +
+                        "%>";
+                }
+                t += "<%=this._macro(" + i + (result[i].parameter === "" ? "" : "," + result[i].parameter) + ");%>";
+                startin = result[i].to;
+            }
+            t += str.substring(startin, str.length);
+            if (autodom) {
+                vt += str.substring(startin, str.length);
+            }
+            return {
+                template: t,
+                virtemplate: vt,
+                info: info
+            };
+        } else {
+            return {template: str, virtemplate: str, info: []};
+        }
+    };
     template.getParseInfo = function (temp, parameters, autodom) {
         var r = null, tempstr = temp;
         for (var i = 0; i < template.compileCache.length; i++) {
@@ -5485,10 +5672,6 @@
                 source: r.source
             }
         }
-    };
-    template.filter = function (str) {
-        str = str.trim();
-        return str.replace(template.regs.isNote, "").replace(template.regs.isDoctype, "").replace(template.regs.isXmlTag, "");
     };
     template.diff = function (newnode, oldnode) {
         var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: []}, current = [];
@@ -5869,193 +6052,6 @@
         }
         return r;
     };
-    template.precompile = function (str, autodom) {
-        str = str.replace(template.regs.a, "<").replace(template.regs.b, ">").replace(template.regs.h, "").replace(template.regs.f, "><").replace(template.regs.i, "").replace(template.regs.k, "").replace(template.regs.l, "");
-        if (str.indexOf("<@") !== -1) {
-            var i = -1, current = "", state = "start", tagname = "", propname = "", propnamestart, propvalue = "";
-            var isbody = true, endtagname = "", props = {}, tagindex = 0, tagendindex = 0, endtagindex = 0,
-                endtagendindex = 0, obj = [];
-            while (i < str.length) {
-                i++;
-                current = str[i];
-                if (state === "start" && current === "<" && str[i + 1] === "@") {
-                    state = "tagstart";
-                    tagindex = i;
-                    continue;
-                }
-                if (state === "tagstart" && current === "@") {
-                    state = "tagname";
-                    tagname = "";
-                    props = {};
-                    continue;
-                }
-                if (state === "start" && current === "<" && str[i + 1] === "/" && str[i + 2] === "@") {
-                    endtagindex = i;
-                    state = "endtag";
-                    endtagname = "";
-                    i += 2;
-                    continue;
-                }
-                if (state === "endtag" && current === ">") {
-                    state = "start";
-                    endtagendindex = i + 1;
-                    obj.push({
-                        type: "endtag",
-                        tagname: endtagname,
-                        start: endtagindex,
-                        end: endtagendindex
-                    });
-                    continue;
-                }
-                if (state === "tagname" && current === " ") {
-                    state = "propname";
-                    propname = "";
-                    continue;
-                }
-                if (state === "tagname" && (current === "/" || current === ">")) {
-                    if (current === ">") {
-                        tagendindex = i + 1;
-                        state = "start";
-                        isbody = true;
-                    } else if (current === "/") {
-                        tagendindex = i + 2;
-                        state = "start";
-                        isbody = false;
-                    }
-                    if (tagname !== "") {
-                        obj.push({
-                            type: "tag",
-                            tagname: tagname,
-                            props: props,
-                            body: isbody,
-                            start: tagindex,
-                            end: tagendindex
-                        });
-                    }
-                    continue;
-                }
-                if (state === "propname" && current === "=") {
-                    state = "propvalue";
-                    continue;
-                }
-                if (state === "propvalue" && (current === "'" || current === "\"")) {
-                    state = "propvalueing";
-                    propnamestart = current;
-                    propvalue = "";
-                    continue;
-                }
-                if (state === "propvalueing" && current === propnamestart) {
-                    state = "tagname";
-                    props[propname] = propvalue;
-                    continue;
-                }
-                if (state === "endtag") {
-                    endtagname += current;
-                }
-                if (state === "tagname") {
-                    tagname += current;
-                }
-                if (state === "propname") {
-                    propname += current;
-                }
-                if (state === "propvalueing") {
-                    propvalue += current;
-                }
-            }
-            var index = 0, start = 0, end = 0, inner = false, current = null, result = [], t = "", vt = "", startin = 0,
-                info = [];
-            for (var i in obj) {
-                if (obj[i].type === "tag" && obj[i].body === false && inner === false) {
-                    obj[i].bodystr = "";
-                    obj[i].from = obj[i].start;
-                    obj[i].to = obj[i].end;
-                    result.push(obj[i]);
-                }
-                if (obj[i].type === "tag" && obj[i].body === true) {
-                    inner = true;
-                    if (current === null) {
-                        current = obj[i];
-                        current.from = obj[i].start;
-                    }
-                    if (index === 0) {
-                        start = obj[i].start;
-                        end = obj[i].end;
-                    }
-                    index++;
-                }
-                if (obj[i].type === "endtag") {
-                    index--;
-                    if (index === 0) {
-                        current.to = obj[i].end;
-                        current.bodystr = str.substring(end, obj[i].start);
-                        result.push(current);
-                        current = null;
-                        inner = false;
-                    }
-                }
-            }
-            for (var i in result) {
-                var st = result[i].props, parameter = "";
-                for (var tpp in st) {
-                    var np = st[tpp];
-                    if (template.regs.g.test(np)) {
-                        var qpp = np.split(template.regs.d), cpp = "";
-                        for (var ip = 1; ip <= qpp.length; ip++) {
-                            if (ip % 2 === 0) {
-                                if (qpp[ip - 1] !== "") {
-                                    cpp += qpp[ip - 1] + "+";
-                                }
-                            } else {
-                                if (qpp[ip - 1] !== "") {
-                                    cpp += "'" + qpp[ip - 1] + "'+";
-                                } else {
-                                    cpp += qpp[ip - 1];
-                                }
-                            }
-                        }
-                        var npp = (cpp.length > 0 ? cpp.substring(0, cpp.length - 1) : "''");
-                        parameter += tpp + ":" + npp.substring(1, npp.length - 1) + ",";
-                    } else {
-                        parameter += tpp + ":'" + st[tpp].substring(1, st[tpp].length - 1) + "',";
-                    }
-                }
-                result[i].parameter = "{" + (parameter.length > 0 ? parameter.substring(0, parameter.length - 1) : parameter) + "}";
-                info.push({
-                    name: result[i].tagname,
-                    body: result[i].bodystr,
-                    parameter: result[i].parameter
-                });
-                var a = str.substring(startin, result[i].from);
-                t += a;
-                if (autodom) {
-                    vt += a;
-                    vt += "<%var tp=this._macro(" + i + (result[i].parameter === "" ? "" : "," + result[i].parameter) + ");" +
-                        "if(tp){" +
-                        "var c=__$$$node$$$.parse(tp);" +
-                        "for(var ____$$$$i=0;____$$$$i<c.length;____$$$$i++){" +
-                        "{{node}}.children.push(c[____$$$$i])" +
-                        "}" +
-                        "}else{" +
-                        "{{node}}.children.push({content:''})" +
-                        "}" +
-                        "%>";
-                }
-                t += "<%=this._macro(" + i + (result[i].parameter === "" ? "" : "," + result[i].parameter) + ");%>";
-                startin = result[i].to;
-            }
-            t += str.substring(startin, str.length);
-            if (autodom) {
-                vt += str.substring(startin, str.length);
-            }
-            return {
-                template: t,
-                virtemplate: vt,
-                info: info
-            };
-        } else {
-            return {template: str, virtemplate: str, info: []};
-        }
-    };
     template.prototype._cache = function (data) {
         var id = "";
         if (is.isObject(data) || is.isArray(data)) {
@@ -6157,12 +6153,6 @@
         }
         return this;
     };
-    template.prototype.clean = function () {
-        this._caching.length = 0;
-        for (var i in this) {
-            this[i] = null;
-        }
-    };
     template.prototype.isAutodom = function () {
         return this._autodom;
     };
@@ -6187,8 +6177,11 @@
     template.prototype.getPropsHookInfo = function () {
         return this._propshookinfo;
     };
-    topolr.template = function (temp, option) {
-        return new template(temp, option);
+    template.prototype.clean = function () {
+        this._caching.length = 0;
+        for (var i in this) {
+            this[i] = null;
+        }
     };
     topolr.setTemplateGlobalMacro = function (key, fn) {
         if (arguments.length === 1) {
@@ -6197,6 +6190,9 @@
             template.globalMacro[key] = fn;
         }
         return this;
+    };
+    topolr.template = function (temp, option) {
+        return new template(temp, option);
     };
 
     var autodomc = function (dom, temp, option) {
@@ -6245,6 +6241,8 @@
         regs: {
             a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/
         },
+        factory: topolr.adapt(),
+        task: new dynamicQueue(),
         isMutation: function () {
             return (window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver || null) !== null;
         },
@@ -6284,7 +6282,6 @@
                 }
             }
         },
-        factory: topolr.adapt(),
         getPacketName: function (name, suffix) {
             if (name) {
                 name = name.trim();
@@ -6302,16 +6299,6 @@
             } else {
                 return "";
             }
-        },
-        getArrayUnDuplicate: function (a) {
-            var r = {}, c = [];
-            for (var i = 0; i < a.length; i++) {
-                r[a[i]] = 1;
-            }
-            for (var i in r) {
-                c.push(i);
-            }
-            return c;
         },
         getViewInstance: function (dom, option, fn) {
             var moduleName = dom.dataset("view");
@@ -6379,7 +6366,42 @@
         isPacketName: function (str) {
             return topolr.is.isString(str) && str.indexOf("<") === -1 && str.indexOf(".") !== -1;
         },
-        task: new dynamicQueue()
+        agentEvent: function (moduleobj, props) {
+            for (var i in props) {
+                moduleobj.dom.bind(i, module.agentHandler);
+            }
+        },
+        agentHandler: function (e) {
+            var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
+            var hash = module.getShortUUID();
+            while (d && d !== window) {
+                var bindnamestr = topolr(d).dataset("bind");
+                if (bindnamestr) {
+                    var typemap = {};
+                    var bindnames = bindnamestr.split("-")[1].split(" ");
+                    for (var i = 0; i < bindnames.length; i++) {
+                        var a = bindnames[i].split(":");
+                        typemap[a[0]] = a[1];
+                    }
+                    var name = typemap[e.type];
+                    if (name) {
+                        if (module["bind_" + name]) {
+                            e.stopPropagation = function () {
+                                this._ispropagation = true;
+                            };
+                            module["bind_" + name].call(module, topolr(d), e);
+                            if (e._ispropagation) {
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (d === m) {
+                    break;
+                }
+                d = d.parentNode;
+            }
+        }
     };
     var option = {
         options: {},
@@ -6444,46 +6466,6 @@
     };
     viewevent.prototype.stopPropagation = function () {
         this._goon = false;
-    };
-
-    var modulebinder = {
-        bind: function (module, props) {
-            for (var i in props) {
-                module.dom.bind(i, modulebinder.handler);
-            }
-        },
-        handler: function (e) {
-            var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
-            var hash = module.getShortUUID();
-            while (d && d !== window) {
-                var bindnamestr = topolr(d).dataset("bind");
-                if (bindnamestr) {
-                    var typemap = {};
-                    var bindnames = bindnamestr.split("-")[1].split(" ");
-                    for (var i = 0; i < bindnames.length; i++) {
-                        var a = bindnames[i].split(":");
-                        typemap[a[0]] = a[1];
-                    }
-                    var name = typemap[e.type];
-                    if (name) {
-                        if (module["bind_" + name]) {
-                            e.stopPropagation = function () {
-                                this._ispropagation = true;
-                            };
-                            module["bind_" + name].call(module, topolr(d), e);
-                            if (e._ispropagation) {
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (d === m) {
-                    break;
-                }
-                d = d.parentNode;
-            }
-            e.stopPropagation();
-        }
     };
 
     var servicer = function () {
@@ -7083,7 +7065,7 @@
                         dataarray: n,
                         renderId: ths.getShortUUID()
                     });
-                    modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
+                    module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                 } else {
                     if (!ths.tempt) {
                         ths.tempt = topolr.template(ths.template, {
@@ -7091,7 +7073,7 @@
                             parameters: ["data"],
                             renderId: ths.getShortUUID()
                         });
-                        modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
+                        module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
                     tep.renderTo.apply(ths.tempt, n);
@@ -7227,9 +7209,6 @@
         finders: function (name) {
             return this.dom.find("[data-find='" + (this.getShortUUID() + "-" + name) + "']");
         },
-        binders: function (name) {
-            return this.dom.find("[data-bind^='" + (this.getShortUUID() + "-") + "']");
-        },
         groups: function (name) {
             return this.dom.find("[data-group='g:" + (this.getShortUUID() + "-" + name) + "']");
         },
@@ -7357,10 +7336,10 @@
                                         dataarray: [ths.option, ths.getId(), ths.option],
                                         renderId: ths.getShortUUID()
                                     });
-                                    modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
+                                    module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
                                     ths.tempt = tempt;
-                                    modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
+                                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
                                 }
                             } catch (e) {
