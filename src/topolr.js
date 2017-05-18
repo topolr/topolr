@@ -2685,22 +2685,26 @@
         }
     };
     query.prototype.group = function () {
+        var r = [];
         if (!this.isEmpty()) {
-        } else {
-            return null;
+            var a=this.node[0].parentNode;
+            while(a&&a!==document){
+                if(topolr(a).dataset("group")){
+                    r.push(a);
+                    break;
+                }else {
+                    a = a.parentNode;
+                }
+            }
         }
+        return dom.util.getDom(r);
     };
     query.prototype.items = function (name) {
-        var r = new dom();
+        var r = [];
         if (!this.isEmpty()) {
+            r = dom.util.query(this.nodes[0], "[data-groupi='"+name+"']");
         }
-        return r;
-    };
-    query.prototype.item = function () {
-        if (!this.isEmpty()) {
-        } else {
-            return null;
-        }
+        return dom.util.getDom(r);
     };
     query.prototype.cache = function () {
         if (!this.isEmpty()) {
