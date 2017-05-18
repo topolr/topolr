@@ -5255,23 +5255,29 @@
     tnode.prototype.hasCode = function () {
         return /\(\[-code-\]\)/.test(this.content);
     };
-    var template = function (temp, macro, parameters, autodom, renderId) {
-        var tinfo = template.getParseInfo.call(this, temp, parameters, autodom);
+    var template = function (temp, option) {
+        var ops=topolr.extend({
+            macro:{},
+            parameters:[],
+            autodom:false,
+            renderId:null
+        },option);
+        var tinfo = template.getParseInfo.call(this, temp, ops.parameters, ops.autodom);
+        this._parameters = ops.parameters;
+        this._renderId = ops.renderId;
+        this._autodom = ops.autodom;
+        this._macrofn = ops.macro || {};
         this._scope = tinfo.info.info;
         this._code = tinfo.tcode;
         this._fn = tinfo.tfn;
-        this._autodom = autodom;
-        if (autodom) {
+        if (ops.autodom) {
             this._autocode = tinfo.acode;
             this._autocodefn = tinfo.afn;
         }
+        this._source = tinfo.source;
         this._session = null;
         this._caching = {};
-        this._macrofn = macro || {};
         this._isupdate = false;
-        this._source = tinfo.source;
-        this._parameters = parameters;
-        this._renderId = renderId;
         topolr.extend(this._macrofn, template.globalMacro);
     };
     template.m = /"/g;
@@ -6180,8 +6186,8 @@
     template.prototype.getPropsHookInfo = function () {
         return this._propshookinfo;
     };
-    topolr.template = function (temp, macro, parameters, autodom, renderId) {
-        return new template(temp, macro, parameters, autodom, renderId);
+    topolr.template = function (temp, option) {
+        return new template(temp, option);
     };
     topolr.setTemplateGlobalMacro = function (key, fn) {
         if (arguments.length === 1) {
@@ -6191,28 +6197,27 @@
         }
         return this;
     };
-    query.prototype.template = function (parameters, macro) {
-        var temp = new template(ths.html(), macro, parameters), ths = this;
-        return {
-            render: function (data, fn) {
-                ths.html(temp.render(data, fn));
-                return ths;
-            },
-            compile: function (data, fn) {
-                return temp.render(data, fn);
-            }
-        };
-    };
 
-    var autodomc = function (dom, temp, macro, paramters, dataarray, renderId) {
+    var autodomc = function (dom, temp, option) {
         this.dom = dom;
+        var ops=topolr.extend({
+            macro:{},
+            parameters:[],
+            dataarray:[],
+            renderId:null
+        },option);
         if (is.isString(temp)) {
-            this.tempt = topolr.template(temp, macro, paramters, true, renderId);
+            this.tempt=topolr.template(temp,{
+                macro:ops.macro,
+                parameters:ops.parameters,
+                autodom:true,
+                renderId:ops.renderId
+            });
         } else {
             this.tempt = temp;
         }
-        var tempstr = this.tempt.render.apply(this.tempt, dataarray);
-        this.virt = this.tempt.autoDom.apply(this.tempt, dataarray);
+        var tempstr = this.tempt.render.apply(this.tempt, ops.dataarray);
+        this.virt = this.tempt.autoDom.apply(this.tempt, ops.dataarray);
         dom.html(tempstr);
         this.tempt.flush(dom);
     };
@@ -6231,8 +6236,8 @@
     autodomc.prototype.getPropsHookInfo = function () {
         return this.tempt.getPropsHookInfo();
     };
-    query.prototype.autodom = function (temp, macro, paramters, dataarray, renderId) {
-        return new autodomc(this, temp, macro, paramters, dataarray, renderId);
+    query.prototype.autodom = function (temp, option) {
+        return new autodomc(this, temp, option);
     };
 
     var module = {
@@ -7071,11 +7076,20 @@
             try {
                 var n = Array.prototype.slice.call(arguments);
                 if (ths.autodom) {
-                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n, ths.getShortUUID());
+                    ths.autodomc =ths.dom.autodom(ths.template,{
+                        macro:ths.marcos,
+                        parameters:["data"],
+                        dataarray:n,
+                        renderId:ths.getShortUUID()
+                    });
                     modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                 } else {
                     if (!ths.tempt) {
-                        ths.tempt = topolr.template(ths.template, ths.marcos, ["data"], ths.getShortUUID());
+                        ths.tempt=topolr.template(ths.template,{
+                            macro:ths.marcos,
+                            parameters:["data"],
+                            renderId:ths.getShortUUID()
+                        });
                         modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
@@ -7329,9 +7343,19 @@
                                         return "<" + prps.tagName + " class='" + prps.fullClassName + "' data-parent-view='" + ths.getId() + "' data-view='" + type + "' data-view-id='" + (id !== undefined && id !== null ? id : (ths.getId() + "-" + ths.children.length)) + "' data-option='" + (option || "") + "'></" + prps.tagName + ">";
                                     }
                                 }, ths.marcos);
-                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom, ths.getShortUUID());
+                                var tempt=topolr.template(str,{
+                                    macro:_macro,
+                                    parameters:["data", "pid", "option"],
+                                    autodom:ths.autodom,
+                                    renderId:ths.getShortUUID()
+                                });
                                 if (ths.autodom) {
-                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option], ths.getShortUUID());
+                                    ths.autodomc=ths.dom.autodom(tempt,{
+                                        macro:_macro,
+                                        parameters:["data", "pid", "option"],
+                                        dataarray:[ths.option, ths.getId(), ths.option],
+                                        renderId:ths.getShortUUID()
+                                    });
                                     modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
                                     ths.tempt = tempt;
