@@ -2687,12 +2687,12 @@
     query.prototype.group = function () {
         var r = [];
         if (!this.isEmpty()) {
-            var a=this.node[0].parentNode;
-            while(a&&a!==document){
-                if(topolr(a).dataset("group")){
+            var a = this.node[0].parentNode;
+            while (a && a !== document) {
+                if (topolr(a).dataset("group")) {
                     r.push(a);
                     break;
-                }else {
+                } else {
                     a = a.parentNode;
                 }
             }
@@ -2702,7 +2702,7 @@
     query.prototype.items = function (name) {
         var r = [];
         if (!this.isEmpty()) {
-            r = dom.util.query(this.nodes[0], "[data-groupi='"+name+"']");
+            r = dom.util.query(this.nodes[0], "[data-groupi='" + name + "']");
         }
         return dom.util.getDom(r);
     };
@@ -5260,12 +5260,12 @@
         return /\(\[-code-\]\)/.test(this.content);
     };
     var template = function (temp, option) {
-        var ops=topolr.extend({
-            macro:{},
-            parameters:[],
-            autodom:false,
-            renderId:null
-        },option);
+        var ops = topolr.extend({
+            macro: {},
+            parameters: [],
+            autodom: false,
+            renderId: null
+        }, option);
         var tinfo = template.getParseInfo.call(this, temp, ops.parameters, ops.autodom);
         this._parameters = ops.parameters;
         this._renderId = ops.renderId;
@@ -5284,27 +5284,25 @@
         this._isupdate = false;
         topolr.extend(this._macrofn, template.globalMacro);
     };
-    template.m = /"/g;
-    template.k = /\r/g;
-    template.l = /\n/g;
-    template.a = /&lt;/g;
-    template.b = /&gt;/g;
-    template.c = /&quot;/g;
-    template.d = /<%|%>/g;
-    template.e = /^=.*;$/;
-    template.i = /\r\n/g;
-    template.f = />[\s]+</g;
-    template.j = /\{\{|\}\}/;
-    template.g = /<%[\s\S]*%>/;
-    template.h = /\<\!\-\-[\s\S]*?\-\-\>/g;
-    template.z = /\<\!\-\-\([0-9a-zA-Z-_]*?\)\-\-\>/;
-    template.ch = /@cache\(.*?\)/g;
-    template.df = /data-find=['"][\s\S]+?['"]/g;
-    template.dg = /data-group=['"][\s\S]+?['"]/g;
-    template.db = /data-bind=['"][\s\S]+?['"]/g;
-    template.isDoctype = /\<\!DOCTYPE[\s\S]*?\>/g;
-    template.isNote = /\<\!\-\-[\s\S]*?\-\-\>/g;
-    template.isXmlTag = /\<\?[\s\S]*?\?\>/g;
+    template.regs = {
+        k: /\r/g,
+        l: /\n/g,
+        a: /&lt;/g,
+        b: /&gt;/g,
+        d: /<%|%>/g,
+        e: /^=.*;$/,
+        i: /\r\n/g,
+        f: />[\s]+</g,
+        g: /<%[\s\S]*%>/,
+        h: /\<\!\-\-[\s\S]*?\-\-\>/g,
+        ch: /@cache\(.*?\)/g,
+        df: /data-find=['"][\s\S]+?['"]/g,
+        dg: /data-group=['"][\s\S]+?['"]/g,
+        db: /data-bind=['"][\s\S]+?['"]/g,
+        isDoctype: /\<\!DOCTYPE[\s\S]*?\>/g,
+        isNote: /\<\!\-\-[\s\S]*?\-\-\>/g,
+        isXmlTag: /\<\?[\s\S]*?\?\>/g
+    };
     template.compileCache = [];
     template.globalMacro = {
         include: function (attrs, renderbody, hasbody) {
@@ -5379,11 +5377,11 @@
     template.propshook = function (str) {
         var temp = this;
         temp._propshookinfo = {};
-        return str.replace(template.df, function (str) {
+        return str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
-        }).replace(template.dg, function (str) {
+        }).replace(template.regs.dg, function (str) {
             return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
-        }).replace(template.db, function (str) {
+        }).replace(template.regs.db, function (str) {
             var val = str.substring(11, str.length - 1);
             var vals = val.split(" ");
             for (var i = 0; i < vals.length; i++) {
@@ -5391,7 +5389,7 @@
                 temp._propshookinfo[a[0]] = a[1];
             }
             return "data-bind='<%=this._prophook(\"" + val + "\");%>'";
-        }).replace(template.ch, function (e) {
+        }).replace(template.regs.ch, function (e) {
             var k = e.substring(7, e.length - 1);
             return "data-cache='<%=this._cache(" + k + ");%>'";
         });
@@ -5407,7 +5405,7 @@
         if (!r) {
             var pid = "", path = "", tcode = "", tfn = null, acode = "", afn = null;
             if (app.option.debug) {
-                var q = temp.match(template.h);
+                var q = temp.match(template.regs.h);
                 if (q) {
                     pid = q[0].substring(5, q[0].length - 4);
                     path = app.option.basePath + pid.replace(/\./g, "/") + ".js";
@@ -5490,7 +5488,7 @@
     };
     template.filter = function (str) {
         str = str.trim();
-        return str.replace(template.isNote, "").replace(template.isDoctype, "").replace(template.isXmlTag, "");
+        return str.replace(template.regs.isNote, "").replace(template.regs.isDoctype, "").replace(template.regs.isXmlTag, "");
     };
     template.diff = function (newnode, oldnode) {
         var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: []}, current = [];
@@ -5765,11 +5763,10 @@
             outp = "\r\n__$$out$$+";
         }
         fn += "var __$$out$$='';";
-        var tp = temp.split(template.d);
+        var tp = temp.split(template.regs.d);
         for (var index = 0; index < tp.length; index++) {
             var e = tp[index];
-            // index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=\"" + e.replace(template.m, '\\"') + "\";");
-            index % 2 !== 0 ? (template.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=" + JSON.stringify(e) + ";");
+            index % 2 !== 0 ? (template.regs.e.test(e) ? (fn += outp + "=((" + e.substring(1, e.length - 1) + ")!==undefined?(" + e.substring(1, e.length - 1) + "):'');") : (fn += e)) : (fn += outp + "=" + JSON.stringify(e) + ";");
         }
         fn += "return __$$out$$;";
         if (app.option.debug) {
@@ -5779,11 +5776,11 @@
     };
     template.autocode = function (temp, path) {
         var fn = "", outp = "", cc = [], ee = [];
-        var tp = temp.replace(template.a, "<%").replace(template.b, "%>").split(template.d);
+        var tp = temp.replace(template.regs.a, "<%").replace(template.regs.b, "%>").split(template.regs.d);
         for (var index = 0; index < tp.length; index++) {
             var e = tp[index];
             if (index % 2 !== 0) {
-                if (template.e.test(e)) {
+                if (template.regs.e.test(e)) {
                     fn += outp + "[[-code-]]";
                     cc.push(e);
                 } else {
@@ -5873,7 +5870,7 @@
         return r;
     };
     template.precompile = function (str, autodom) {
-        str = str.replace(template.a, "<").replace(template.b, ">").replace(template.h, "").replace(template.f, "><").replace(template.i, "").replace(template.k, "").replace(template.l, "");
+        str = str.replace(template.regs.a, "<").replace(template.regs.b, ">").replace(template.regs.h, "").replace(template.regs.f, "><").replace(template.regs.i, "").replace(template.regs.k, "").replace(template.regs.l, "");
         if (str.indexOf("<@") !== -1) {
             var i = -1, current = "", state = "start", tagname = "", propname = "", propnamestart, propvalue = "";
             var isbody = true, endtagname = "", props = {}, tagindex = 0, tagendindex = 0, endtagindex = 0,
@@ -6001,8 +5998,8 @@
                 var st = result[i].props, parameter = "";
                 for (var tpp in st) {
                     var np = st[tpp];
-                    if (template.g.test(np)) {
-                        var qpp = np.split(template.d), cpp = "";
+                    if (template.regs.g.test(np)) {
+                        var qpp = np.split(template.regs.d), cpp = "";
                         for (var ip = 1; ip <= qpp.length; ip++) {
                             if (ip % 2 === 0) {
                                 if (qpp[ip - 1] !== "") {
@@ -6204,18 +6201,18 @@
 
     var autodomc = function (dom, temp, option) {
         this.dom = dom;
-        var ops=topolr.extend({
-            macro:{},
-            parameters:[],
-            dataarray:[],
-            renderId:null
-        },option);
+        var ops = topolr.extend({
+            macro: {},
+            parameters: [],
+            dataarray: [],
+            renderId: null
+        }, option);
         if (is.isString(temp)) {
-            this.tempt=topolr.template(temp,{
-                macro:ops.macro,
-                parameters:ops.parameters,
-                autodom:true,
-                renderId:ops.renderId
+            this.tempt = topolr.template(temp, {
+                macro: ops.macro,
+                parameters: ops.parameters,
+                autodom: true,
+                renderId: ops.renderId
             });
         } else {
             this.tempt = temp;
@@ -7080,19 +7077,19 @@
             try {
                 var n = Array.prototype.slice.call(arguments);
                 if (ths.autodom) {
-                    ths.autodomc =ths.dom.autodom(ths.template,{
-                        macro:ths.marcos,
-                        parameters:["data"],
-                        dataarray:n,
-                        renderId:ths.getShortUUID()
+                    ths.autodomc = ths.dom.autodom(ths.template, {
+                        macro: ths.marcos,
+                        parameters: ["data"],
+                        dataarray: n,
+                        renderId: ths.getShortUUID()
                     });
                     modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                 } else {
                     if (!ths.tempt) {
-                        ths.tempt=topolr.template(ths.template,{
-                            macro:ths.marcos,
-                            parameters:["data"],
-                            renderId:ths.getShortUUID()
+                        ths.tempt = topolr.template(ths.template, {
+                            macro: ths.marcos,
+                            parameters: ["data"],
+                            renderId: ths.getShortUUID()
                         });
                         modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
                     }
@@ -7347,18 +7344,18 @@
                                         return "<" + prps.tagName + " class='" + prps.fullClassName + "' data-parent-view='" + ths.getId() + "' data-view='" + type + "' data-view-id='" + (id !== undefined && id !== null ? id : (ths.getId() + "-" + ths.children.length)) + "' data-option='" + (option || "") + "'></" + prps.tagName + ">";
                                     }
                                 }, ths.marcos);
-                                var tempt=topolr.template(str,{
-                                    macro:_macro,
-                                    parameters:["data", "pid", "option"],
-                                    autodom:ths.autodom,
-                                    renderId:ths.getShortUUID()
+                                var tempt = topolr.template(str, {
+                                    macro: _macro,
+                                    parameters: ["data", "pid", "option"],
+                                    autodom: ths.autodom,
+                                    renderId: ths.getShortUUID()
                                 });
                                 if (ths.autodom) {
-                                    ths.autodomc=ths.dom.autodom(tempt,{
-                                        macro:_macro,
-                                        parameters:["data", "pid", "option"],
-                                        dataarray:[ths.option, ths.getId(), ths.option],
-                                        renderId:ths.getShortUUID()
+                                    ths.autodomc = ths.dom.autodom(tempt, {
+                                        macro: _macro,
+                                        parameters: ["data", "pid", "option"],
+                                        dataarray: [ths.option, ths.getId(), ths.option],
+                                        renderId: ths.getShortUUID()
                                     });
                                     modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
