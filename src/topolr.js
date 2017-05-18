@@ -2686,7 +2686,6 @@
     };
     query.prototype.group = function () {
         if (!this.isEmpty()) {
-            return this.nodes[0].datasets && this.nodes[0].datasets["-groupitem-"] ? this.nodes[0].datasets["-groupitem-"].group || null : null;
         } else {
             return null;
         }
@@ -2694,23 +2693,11 @@
     query.prototype.items = function (name) {
         var r = new dom();
         if (!this.isEmpty()) {
-            if (this.nodes[0].datasets["-group-"] && this.nodes[0].datasets["-group-"].items) {
-                if (arguments.length === 1) {
-                    if (this.nodes[0].datasets["-group-"].items[name]) {
-                        r.add(this.nodes[0].datasets["-group-"].items[name]);
-                    }
-                } else {
-                    for (var i in this.nodes[0].datasets["-group-"].items) {
-                        r.add(this.nodes[0].datasets["-group-"].items[i]);
-                    }
-                }
-            }
         }
         return r;
     };
     query.prototype.item = function () {
         if (!this.isEmpty()) {
-            return this.nodes[0].datasets && this.nodes[0].datasets["-groupitem-"] ? this.nodes[0].datasets["-groupitem-"] || null : null;
         } else {
             return null;
         }
@@ -4944,6 +4931,9 @@
     adapt.prototype.hashCode=function(){
         return this.hash;
     };
+    adapt.prototype.shortHashCode=function(){
+        return this.hash.substring(0,8);
+    };
     var factory = function () {
         this._mapping = {
             "adapt": adapt
@@ -5261,7 +5251,7 @@
         return /\(\[-code-\]\)/.test(this.content);
     };
     var template = function (temp, macro, parameters, autodom,renderId) {
-        var tinfo = template.getCompileInfo(temp, parameters, autodom);
+        var tinfo = template.getCompileInfo.call(this,temp, parameters, autodom);
         this._scope = tinfo.info.info;
         this._code = tinfo.tcode;
         this._fn = tinfo.tfn;
@@ -5319,7 +5309,7 @@
                 }
             }
             temp = template.cache(temp);
-            temp=template.propset(temp);
+            temp=template.propset.call(this,temp);
             temp=template.beatySyntax.parse(temp);
 
             var a = template.precompile(temp, autodom);
@@ -5561,26 +5551,20 @@
         var ap = Object.keys(a), bp = Object.keys(b), r = {
                 final: a
             }, t = ap.length,
-            isedit = false,
-            ignores = ["data-find", "data-group", "data-bind", "data-group"];
+            isedit = false;
         if (ap.length < bp.length) {
             t = bp.length;
         }
         for (var i = 0; i < t; i++) {
             var key = ap[i];
             if (key) {
-                if (ignores.indexOf(key) !== -1) {
+                if (b[key] === undefined) {
                     isedit = true;
                     break;
                 } else {
-                    if (b[key] === undefined) {
+                    if (a[key] !== b[key]) {
                         isedit = true;
                         break;
-                    } else {
-                        if (a[key] !== b[key]) {
-                            isedit = true;
-                            break;
-                        }
                     }
                 }
             } else {
@@ -6040,10 +6024,20 @@
         }
     };
     template.propset=function(str){
+        var temp=this;
+        temp._propsets={};
         return str.replace(/data-find=['"][\s\S]+?['"]/g,function (str) {
             return "data-find='<%=this._prop(\""+str.substring(11,str.length-1)+"\");%>'";
+        }).replace(/data-group=['"][\s\S]+?['"]/g,function (str) {
+            return "data-group='<%=this._prop(\"g:"+str.substring(11,str.length-1)+"\");%>'";
         }).replace(/data-bind=['"][\s\S]+?['"]/g,function (str) {
-            return "data-bind='<%=this._prop(\""+str.substring(11,str.length-1)+"\");%>'";
+            var val=str.substring(11,str.length-1);
+            var vals=val.split(" ");
+            for(var i=0;i<vals.length;i++){
+                var a=vals[i].split(":");
+                temp._propsets[a[0]]=a[1];
+            }
+            return "data-bind='<%=this._prop(\""+val+"\");%>'";
         });
     };
     template.cache = function (str) {
@@ -6074,7 +6068,7 @@
         return id;
     };
     template.prototype._prop=function(name){
-        return util.hashCode(this._renderId+name);
+        return this._renderId+"-"+name;
     };
     template.prototype._macro = function (num, attr) {
         var n = this._scope[num], ths = this;
@@ -6180,6 +6174,9 @@
         }
         return t;
     };
+    template.prototype.getPropsSets=function(){
+        return this._propsets;
+    };
     topolr.template = function (temp, macro, parameters, autodom,renderId) {
         return new template(temp, macro, parameters, autodom,renderId);
     };
@@ -6228,6 +6225,9 @@
             this[i] = null;
         }
     };
+    autodomc.prototype.getPropsSets=function(){
+        return this.tempt.getPropsSets();
+    }
     query.prototype.autodom = function (temp, macro, paramters, dataarray,renderId) {
         return new autodomc(this, temp, macro, paramters, dataarray,renderId);
     };
@@ -6437,15 +6437,21 @@
         this._goon = false;
     };
 
-    var delegater = function () {
-        this._data = [];
-    };
-    delegater.handler = function (e) {
+    var delegater = function () {};
+    delegater.dobind=function(e){
         var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
+        var hash=module.shortHashCode();
         while (d && d !== window) {
-            if (d.datasets && d.datasets["-eventback-"]) {
-                var name = d.datasets["-eventback-"][e.type];
-                if (name) {
+            var bindnamestr=topolr(d).dataset("bind");
+            if(bindnamestr){
+                var typemap={};
+                var bindnames=bindnamestr.split("-")[1].split(" ");
+                for(var i=0;i<bindnames.length;i++){
+                    var a=bindnames[i].split(":");
+                    typemap[a[0]]=a[1];
+                }
+                var name=typemap[e.type];
+                if(name){
                     if (module["bind_" + name]) {
                         e.stopPropagation = function () {
                             this._ispropagation = true;
@@ -6464,83 +6470,10 @@
         }
         e.stopPropagation();
     };
-    delegater.finder = function (module) {
-        // module._finders._data.length = 0;
-        // module.dom.find("[data-find]").each(function () {
-        //     var _name = this.dataset.find, _run = true;
-        //     this.removeAttribute("data-find");
-        //     if (this.datasets && this.datasets["-finder-"] && this.datasets["-finder-"].name === _name) {
-        //         _run = false;
-        //     }
-        //     if (_run) {
-        //         this.datasets || (this.datasets = {});
-        //         this.datasets["-finder-"] = {name: _name};
-        //         try {
-        //             module["find_" + _name] && module["find_" + _name](topolr(this), module._finders);
-        //         } catch (e) {
-        //             console.error("[topolr] view finder called error with module of " + module.type() + " Message:" + e.stack);
-        //         }
-        //     }
-        //     module._finders._data.push(topolr(this));
-        // });
-    };
-    delegater.group = function (module) {
-        module._groups._data.length = 0;
-        module.dom.find("[data-group]").each(function () {
-            var _name = this.dataset.group, _run = true, p = {name: _name, items: {}}, qt = topolr(this);
-            this.removeAttribute("data-group");
-            if (this.datasets && this.datasets["-group-"] && this.datasets["-group-"].name === _name) {
-                _run = false;
-                p = this.datasets["-group-"];
-            }
-            topolr(this).find("[data-groupi]").each(function () {
-                var _iname = this.dataset.groupi;
-                topolr(this).data("-groupitem-", {
-                    name: _iname,
-                    group: qt
-                }).removeAttr("data-groupi");
-                p.items[_iname] = topolr(this);
-            });
-            if (_run) {
-                this.datasets || (this.datasets = {});
-                this.datasets["-group-"] = p;
-                if (module["group_" + _name]) {
-                    try {
-                        module["group_" + _name](topolr(this));
-                    } catch (e) {
-                        console.error("[topolr] view groups called error with module of " + module.type() + " Message:" + e.stack);
-                    }
-                }
-            }
-            module._groups._data.push(topolr(this));
-        });
-    };
-    delegater.event = function (module) {
-        // for (var i = 0; i < module._binders._data.length; i++) {
-        //     module._binders._data[i].get(0).datasets["-eventback-"] = {};
-        // }
-        // module._binders._data.length = 0;
-        module.dom.find("[data-bind]").each(function () {
-            var q = {}, types = topolr(this).dataset("bind").split(" ");
-            for (var m in types) {
-                var type = types[m].split(":"), etype = type[0], back = type[1], qt = module.dom.get(0);
-                q[etype] = back;
-                if (!qt.events || qt.events && !qt.events[etype]) {
-                    module.dom.bind(etype, delegater.handler);
-                }
-            }
-            if (!this.datasets) {
-                this.datasets = {};
-            }
-            // this.removeAttribute("data-bind");
-            this.datasets["-eventback-"] = q;
-            // module._binders._data.push(topolr(this));
-        });
-    };
-    delegater.delegate = function (module) {
-        delegater.finder(module);
-        delegater.group(module);
-        delegater.event(module);
+    delegater.bind=function(module,props){
+        for(var i in props){
+            module.dom.bind(i,delegater.dobind);
+        }
     };
 
     var servicer = function () {
@@ -6974,9 +6907,9 @@
                     this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
                 this.dom.data("--view--", this);
-                this._finders = new delegater();
-                this._groups = new delegater();
-                this._binders = new delegater();
+                // this._finders = new delegater();
+                // this._groups = new delegater();
+                // this._binders = new delegater();
                 if (this.dom.children().length > 0) {
                     this.template = this.dom.html();
                 }
@@ -7137,13 +7070,17 @@
             try {
                 var n = Array.prototype.slice.call(arguments);
                 if (ths.autodom) {
-                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n,ths.hashCode());
-                    delegater.delegate(ths);
+                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n,ths.shortHashCode());
+                    delegater.bind(ths,ths.autodomc.getPropsSets());
+                    // delegater.delegate(ths);
                 } else {
-                    var tep = topolr.template(ths.template, ths.marcos, ["data"],ths.hashCode());
+                    if(!ths.tempt) {
+                        ths.tempt = topolr.template(ths.template, ths.marcos, ["data"], ths.shortHashCode());
+                        delegater.bind(ths,ths.tempt.getPropsSets());
+                    }
                     n.unshift(ths.dom);
-                    tep.renderTo.apply(tep, n);
-                    delegater.delegate(ths);
+                    tep.renderTo.apply(ths.tempt, n);
+                    // delegater.delegate(ths);
                 }
             } catch (e) {
                 console.error("[topolr] render called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7163,7 +7100,7 @@
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
                     this.autodomc.update(Array.prototype.slice.call(arguments));
-                    delegater.delegate(this);
+                    // delegater.delegate(this);
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -7275,50 +7212,13 @@
             }
         },
         finders: function (name) {
-            return this.dom.find("[data-find='"+util.hashCode(this.hashCode()+name)+"']");
-            // var r = topolr();
-            // for (var i = 0; i < this._finders._data.length; i++) {
-            //     if (arguments.length === 1) {
-            //         if (this._finders._data[i].data("-finder-") && this._finders._data[i].data("-finder-").name === name) {
-            //             r.add(this._finders._data[i]);
-            //         }
-            //     } else {
-            //         r.add(this._finders._data[i]);
-            //     }
-            // }
-            // return r;
+            return this.dom.find("[data-find='"+(this.shortHashCode()+"-"+name)+"']");
         },
         binders: function (name) {
-            var r = topolr();
-            for (var i = 0; i < this._binders._data.length; i++) {
-                if (arguments.length === 1) {
-                    var has = false;
-                    for (var m in this._binders._data[i].data("-eventback-")) {
-                        if (this._binders._data[i].data("-eventback-")[m] === name) {
-                            has = true;
-                        }
-                    }
-                    if (has) {
-                        r.add(this._binders._data[i]);
-                    }
-                } else {
-                    r.add(this._binders._data[i]);
-                }
-            }
-            return r;
+            return this.dom.find("[data-bind^='"+(this.shortHashCode()+"-")+"']");
         },
         groups: function (name) {
-            var r = topolr();
-            for (var i = 0; i < this._groups._data.length; i++) {
-                if (arguments.length === 1) {
-                    if (this._groups._data[i].data("-group-") && this._groups._data[i].data("-group-").name === name) {
-                        r.add(this._groups._data[i]);
-                    }
-                } else {
-                    r.add(this._groups._data[i]);
-                }
-            }
-            return r;
+            return this.dom.find("[data-group='g:"+(this.shortHashCode()+"-"+name)+"']");
         },
         service_schange: function (data, info) {
             this.update(data);
@@ -7369,9 +7269,9 @@
                     this.layout = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
                 this.dom.data("--view--", this);
-                this._finders = new delegater();
-                this._groups = new delegater();
-                this._binders = new delegater();
+                // this._finders = new delegater();
+                // this._groups = new delegater();
+                // this._binders = new delegater();
                 this._handlers = {};
                 this.children = [];
                 var ths = this, optionName = this.dom.dataset("option"), queue = topolr.queue();
@@ -7434,10 +7334,13 @@
                                         return "<" + prps.tagName + " class='" + prps.fullClassName + "' data-parent-view='" + ths.getId() + "' data-view='" + type + "' data-view-id='" + (id !== undefined && id !== null ? id : (ths.getId() + "-" + ths.children.length)) + "' data-option='" + (option || "") + "'></" + prps.tagName + ">";
                                     }
                                 }, ths.marcos);
-                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom,ths.hashCode());
+                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom,ths.shortHashCode());
                                 if (ths.autodom) {
-                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option],ths.hashCode());
+                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option],ths.shortHashCode());
+                                    delegater.bind(ths,ths.autodomc.getPropsSets());
                                 } else {
+                                    ths.tempt=tempt;
+                                    delegater.bind(ths,ths.tempt.getPropsSets());
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
                                 }
                             } catch (e) {
@@ -7463,7 +7366,7 @@
                         queue.complete(function (a) {
                             a["name"] = a.type();
                             a["shortname"] = a.shortName();
-                            delegater.delegate(a);
+                            // delegater.delegate(a);
                             if (a.className && a.className !== "") {
                                 a.dom.addClass(a.className);
                             }
@@ -7643,7 +7546,7 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
-                delegater.delegate(this);
+                // delegater.delegate(this);
             }
         },
         getChildrenByType: function (type) {
