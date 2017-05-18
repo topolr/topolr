@@ -5282,6 +5282,7 @@
         this._session = null;
         this._caching = {};
         this._isupdate = false;
+        this._propshookinfo=tinfo.propshookinfo;
         topolr.extend(this._macrofn, template.globalMacro);
     };
     template.regs = {
@@ -5374,9 +5375,7 @@
             });
         }
     };
-    template.propshook = function (str) {
-        var temp = this;
-        temp._propshookinfo = {};
+    template.propshook = function (str,_propshookinfo) {
         return str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
@@ -5386,7 +5385,7 @@
             var vals = val.split(" ");
             for (var i = 0; i < vals.length; i++) {
                 var a = vals[i].split(":");
-                temp._propshookinfo[a[0]] = a[1];
+                _propshookinfo[a[0]] = a[1];
             }
             return "data-bind='<%=this._prophook(\"" + val + "\");%>'";
         }).replace(template.regs.ch, function (e) {
@@ -5601,7 +5600,8 @@
                     path = app.option.basePath + pid + ".js";
                 }
             }
-            temp = template.propshook.call(this, temp);
+            var _propshookinfo={};
+            temp = template.propshook.call(this, temp,_propshookinfo);
             temp = template.beatySyntax.parse(temp);
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
@@ -5621,7 +5621,8 @@
                 acode: acode,
                 path: path,
                 source: temp,
-                fns: [mt]
+                fns: [mt],
+                propshookinfo:_propshookinfo
             };
             template.compileCache.push(r);
             return {
@@ -5631,7 +5632,8 @@
                 tfn: mt.tfn,
                 info: r.info,
                 path: r.path,
-                source: r.source
+                source: r.source,
+                propshookinfo:_propshookinfo
             }
         } else {
             var mt = null;
@@ -5669,7 +5671,8 @@
                 tfn: mt.tfn,
                 info: r.info,
                 path: r.path,
-                source: r.source
+                source: r.source,
+                propshookinfo:r.propshookinfo
             }
         }
     };
@@ -7076,7 +7079,7 @@
                         module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
-                    tep.renderTo.apply(ths.tempt, n);
+                    ths.tempt.renderTo.apply(ths.tempt, n);
                 }
             } catch (e) {
                 console.error("[topolr] render called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7186,8 +7189,6 @@
             } catch (e) {
                 console.error("[topolr] onunload called error with module of " + this.type() + " Message:" + e.stack);
             }
-            this._finders.length = 0;
-            this._groups.length = 0;
             var parentview = this.parentView;
             if (parentview && parentview.children) {
                 var c = parentview.children.indexOf(this);
