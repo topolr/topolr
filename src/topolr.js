@@ -454,7 +454,7 @@
         hashCode: function (str) {
             var hash = 0;
             if (str.length === 0) return hash;
-            for (var i = 0,len=str.length; i < len; i++) {
+            for (var i = 0, len = str.length; i < len; i++) {
                 hash = ((hash << 5) - hash) + str.charCodeAt(i);
                 hash = hash & hash;
             }
@@ -4928,11 +4928,11 @@
         }
         return this._instanceId;
     };
-    adapt.prototype.hashCode=function(){
-        return this.hash;
+    adapt.prototype.getUUID = function () {
+        return this._uuid;
     };
-    adapt.prototype.shortHashCode=function(){
-        return this.hash.substring(0,8);
+    adapt.prototype.getShortUUID = function () {
+        return this._uuid.substring(0, 8);
     };
     var factory = function () {
         this._mapping = {
@@ -5045,7 +5045,12 @@
         var clazz = this._mapping[name];
         if (clazz) {
             obj = new clazz();
-            obj.hash=util.uuid();
+            Object.defineProperty(obj, "_uuid", {
+                enumerable: false,
+                configurable: false,
+                writable: false,
+                value: util.uuid()
+            });
             obj.option = topolr.extend({}, topolr.json.clone(clazz.prototype.option), option);
         }
         return obj;
@@ -5250,8 +5255,8 @@
     tnode.prototype.hasCode = function () {
         return /\(\[-code-\]\)/.test(this.content);
     };
-    var template = function (temp, macro, parameters, autodom,renderId) {
-        var tinfo = template.getCompileInfo.call(this,temp, parameters, autodom);
+    var template = function (temp, macro, parameters, autodom, renderId) {
+        var tinfo = template.getParseInfo.call(this, temp, parameters, autodom);
         this._scope = tinfo.info.info;
         this._code = tinfo.tcode;
         this._fn = tinfo.tfn;
@@ -5266,29 +5271,122 @@
         this._isupdate = false;
         this._source = tinfo.source;
         this._parameters = parameters;
-        this._renderId=renderId;
+        this._renderId = renderId;
         topolr.extend(this._macrofn, template.globalMacro);
     };
-    template.z = /\<\!\-\-\([0-9a-zA-Z-_]*?\)\-\-\>/;
+    template.m = /"/g;
+    template.k = /\r/g;
+    template.l = /\n/g;
     template.a = /&lt;/g;
     template.b = /&gt;/g;
     template.c = /&quot;/g;
     template.d = /<%|%>/g;
     template.e = /^=.*;$/;
+    template.i = /\r\n/g;
     template.f = />[\s]+</g;
+    template.j = /\{\{|\}\}/;
     template.g = /<%[\s\S]*%>/;
     template.h = /\<\!\-\-[\s\S]*?\-\-\>/g;
-    template.j = /\{\{|\}\}/;
-    template.i = /\r\n/g;
-    template.k = /\r/g;
-    template.l = /\n/g;
-    template.m = /"/g;
+    template.z = /\<\!\-\-\([0-9a-zA-Z-_]*?\)\-\-\>/;
     template.ch = /@cache\(.*?\)/g;
+    template.df = /data-find=['"][\s\S]+?['"]/g;
+    template.dg = /data-group=['"][\s\S]+?['"]/g;
+    template.db = /data-bind=['"][\s\S]+?['"]/g;
     template.isDoctype = /\<\!DOCTYPE[\s\S]*?\>/g;
     template.isNote = /\<\!\-\-[\s\S]*?\-\-\>/g;
     template.isXmlTag = /\<\?[\s\S]*?\?\>/g;
     template.compileCache = [];
-    template.getCompileInfo = function (temp, parameters, autodom) {
+    template.globalMacro = {
+        include: function (attrs, renderbody, hasbody) {
+            return this.renderInContext(attrs.template);
+        },
+        self: function (attrs, renderbody, hasbody) {
+            return template.exceute.call(this, this._fn, [attrs.data]);
+        }
+    };
+    template.beatySyntax = {
+        syntaxs: {
+            "defaults": function (str) {
+                return "<%=" + str.substring(2, str.length - 2) + ";%>";
+            },
+            "map": function (str) {
+                var dataname = str.shift();
+                a.shift();
+                var keyname = a.shift() || "$value";
+                var indexname = a.shift() || "$key";
+                return "<%for(var " + indexname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + indexname + "];%>";
+            },
+            "/map": function () {
+                return "<%}%>";
+            },
+            "list": function (a) {
+                console.log(a);
+                var dataname = a.shift();
+                a.shift();
+                var keyname = a.shift() || "$item";
+                var indexname = a.shift() || "$index";
+                return "<%for(var " + indexname + "=0,len=" + dataname + ".length;" + indexname + "<len;" + indexname + "++){ var " + keyname + "=" + dataname + "[" + indexname + "];%>";
+            },
+            "/list": function (str) {
+                return "<%}%>";
+            },
+            "if": function (str) {
+                return "<%if(" + str.join(" ") + "){%>";
+            },
+            "elseif": function (str) {
+                return "<%}else if(" + str.join(" ") + "){%>";
+            },
+            "else": function () {
+                return "<%}else{%>";
+            },
+            "/if": function () {
+                return "<%}%>";
+            },
+            "break": function () {
+                return "<%break;%>";
+            },
+            "set": function (str) {
+                return "<%var " + str.join(" ") + "%>";
+            }
+        },
+        parse: function (strs) {
+            return strs.replace(/\{\{[\s\S]+?\}\}/g, function (str) {
+                var a = str.substring(2, str.length - 2);
+                var b = a.split(" ");
+                var c = b.shift();
+                try {
+                    if (template.beatySyntax.syntaxs[c]) {
+                        return template.beatySyntax.syntaxs[c](b);
+                    } else {
+                        return template.beatySyntax.syntaxs.defaults(str);
+                    }
+                } catch (e) {
+                    console.log(e)
+                }
+            });
+        }
+    };
+    template.propshook = function (str) {
+        var temp = this;
+        temp._propshookinfo = {};
+        return str.replace(template.df, function (str) {
+            return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
+        }).replace(template.dg, function (str) {
+            return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
+        }).replace(template.db, function (str) {
+            var val = str.substring(11, str.length - 1);
+            var vals = val.split(" ");
+            for (var i = 0; i < vals.length; i++) {
+                var a = vals[i].split(":");
+                temp._propshookinfo[a[0]] = a[1];
+            }
+            return "data-bind='<%=this._prophook(\"" + val + "\");%>'";
+        }).replace(template.ch, function (e) {
+            var k = e.substring(7, e.length - 1);
+            return "data-cache='<%=this._cache(" + k + ");%>'";
+        });
+    };
+    template.getParseInfo = function (temp, parameters, autodom) {
         var r = null, tempstr = temp;
         for (var i = 0; i < template.compileCache.length; i++) {
             var item = template.compileCache[i];
@@ -5308,10 +5406,8 @@
                     path = app.option.basePath + pid + ".js";
                 }
             }
-            temp = template.cache(temp);
-            temp=template.propset.call(this,temp);
-            temp=template.beatySyntax.parse(temp);
-
+            temp = template.propshook.call(this, temp);
+            temp = template.beatySyntax.parse(temp);
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
             if (autodom) {
@@ -5380,68 +5476,6 @@
                 path: r.path,
                 source: r.source
             }
-        }
-    };
-    template.beatySyntax={
-        syntaxs:{
-            "defaults":function (str) {
-                return "<%="+str.substring(2,str.length-2)+";%>";
-            },
-            "map":function(str){
-                var dataname=str.shift();
-                a.shift();
-                var keyname=a.shift()||"$value";
-                var indexname=a.shift()||"$key";
-                return "<%for(var "+indexname+" in "+dataname+"){ var "+keyname+"="+dataname+"["+indexname+"];%>";
-            },
-            "/map":function(){
-                return "<%}%>";
-            },
-            "list":function (a) {
-                console.log(a);
-                var dataname=a.shift();
-                a.shift();
-                var keyname=a.shift()||"$item";
-                var indexname=a.shift()||"$index";
-                return "<%for(var "+indexname+"=0,len="+dataname+".length;"+indexname+"<len;"+indexname+"++){ var "+keyname+"="+dataname+"["+indexname+"];%>";
-            },
-            "/list":function (str) {
-                return "<%}%>";
-            },
-            "if":function (str) {
-                return "<%if("+str.join(" ")+"){%>";
-            },
-            "elseif":function (str) {
-                return "<%}else if("+str.join(" ")+"){%>";
-            },
-            "else":function () {
-                return "<%}else{%>";
-            },
-            "/if":function () {
-                return "<%}%>";
-            },
-            "break":function(){
-                return "<%break;%>";
-            },
-            "set":function(str){
-                return "<%var "+str.join(" ")+"%>";
-            }
-        },
-        parse:function (strs) {
-            return strs.replace(/\{\{[\s\S]+?\}\}/g,function (str) {
-                var a=str.substring(2,str.length-2);
-                var b=a.split(" ");
-                var c=b.shift();
-                try {
-                    if (template.beatySyntax.syntaxs[c]) {
-                        return template.beatySyntax.syntaxs[c](b);
-                    } else {
-                        return template.beatySyntax.syntaxs.defaults(str);
-                    }
-                }catch (e){
-                    console.log(e)
-                }
-            });
         }
     };
     template.filter = function (str) {
@@ -5713,14 +5747,6 @@
             }
         }
     };
-    template.globalMacro = {
-        include: function (attrs, renderbody, hasbody) {
-            return this.renderInContext(attrs.template);
-        },
-        self: function (attrs, renderbody, hasbody) {
-            return template.exceute.call(this, this._fn, [attrs.data]);
-        }
-    };
     template.code = function (temp, path) {
         var fn = "", outp = "__$$out$$+";
         if (app.option.debug) {
@@ -5835,7 +5861,7 @@
             console.error("[topolr] template render called error, Message:" + e.stack);
         }
         return r;
-    }
+    };
     template.precompile = function (str, autodom) {
         str = str.replace(template.a, "<").replace(template.b, ">").replace(template.h, "").replace(template.f, "><").replace(template.i, "").replace(template.k, "").replace(template.l, "");
         if (str.indexOf("<@") !== -1) {
@@ -5981,9 +6007,9 @@
                             }
                         }
                         var npp = (cpp.length > 0 ? cpp.substring(0, cpp.length - 1) : "''");
-                        parameter += tpp + ":" + npp.substring(1,npp.length-1) + ",";
+                        parameter += tpp + ":" + npp.substring(1, npp.length - 1) + ",";
                     } else {
-                        parameter += tpp + ":'" + st[tpp].substring(1,st[tpp].length-1) + "',";
+                        parameter += tpp + ":'" + st[tpp].substring(1, st[tpp].length - 1) + "',";
                     }
                 }
                 result[i].parameter = "{" + (parameter.length > 0 ? parameter.substring(0, parameter.length - 1) : parameter) + "}";
@@ -6023,29 +6049,6 @@
             return {template: str, virtemplate: str, info: []};
         }
     };
-    template.propset=function(str){
-        var temp=this;
-        temp._propsets={};
-        return str.replace(/data-find=['"][\s\S]+?['"]/g,function (str) {
-            return "data-find='<%=this._prop(\""+str.substring(11,str.length-1)+"\");%>'";
-        }).replace(/data-group=['"][\s\S]+?['"]/g,function (str) {
-            return "data-group='<%=this._prop(\"g:"+str.substring(11,str.length-1)+"\");%>'";
-        }).replace(/data-bind=['"][\s\S]+?['"]/g,function (str) {
-            var val=str.substring(11,str.length-1);
-            var vals=val.split(" ");
-            for(var i=0;i<vals.length;i++){
-                var a=vals[i].split(":");
-                temp._propsets[a[0]]=a[1];
-            }
-            return "data-bind='<%=this._prop(\""+val+"\");%>'";
-        });
-    };
-    template.cache = function (str) {
-        return str.replace(template.ch, function (e) {
-            var k = e.substring(7, e.length - 1);
-            return "data-cache='<%=this._cache(" + k + ");%>'";
-        });
-    };
     template.prototype._cache = function (data) {
         var id = "";
         if (is.isObject(data) || is.isArray(data)) {
@@ -6067,8 +6070,8 @@
         this._caching[id] = data;
         return id;
     };
-    template.prototype._prop=function(name){
-        return this._renderId+"-"+name;
+    template.prototype._prophook = function (name) {
+        return this._renderId + "-" + name;
     };
     template.prototype._macro = function (num, attr) {
         var n = this._scope[num], ths = this;
@@ -6174,11 +6177,11 @@
         }
         return t;
     };
-    template.prototype.getPropsSets=function(){
-        return this._propsets;
+    template.prototype.getPropsHookInfo = function () {
+        return this._propshookinfo;
     };
-    topolr.template = function (temp, macro, parameters, autodom,renderId) {
-        return new template(temp, macro, parameters, autodom,renderId);
+    topolr.template = function (temp, macro, parameters, autodom, renderId) {
+        return new template(temp, macro, parameters, autodom, renderId);
     };
     topolr.setTemplateGlobalMacro = function (key, fn) {
         if (arguments.length === 1) {
@@ -6201,10 +6204,10 @@
         };
     };
 
-    var autodomc = function (dom, temp, macro, paramters, dataarray,renderId) {
+    var autodomc = function (dom, temp, macro, paramters, dataarray, renderId) {
         this.dom = dom;
         if (is.isString(temp)) {
-            this.tempt = topolr.template(temp, macro, paramters, true,renderId);
+            this.tempt = topolr.template(temp, macro, paramters, true, renderId);
         } else {
             this.tempt = temp;
         }
@@ -6225,11 +6228,11 @@
             this[i] = null;
         }
     };
-    autodomc.prototype.getPropsSets=function(){
-        return this.tempt.getPropsSets();
-    }
-    query.prototype.autodom = function (temp, macro, paramters, dataarray,renderId) {
-        return new autodomc(this, temp, macro, paramters, dataarray,renderId);
+    autodomc.prototype.getPropsHookInfo = function () {
+        return this.tempt.getPropsHookInfo();
+    };
+    query.prototype.autodom = function (temp, macro, paramters, dataarray, renderId) {
+        return new autodomc(this, temp, macro, paramters, dataarray, renderId);
     };
 
     var module = {
@@ -6437,42 +6440,43 @@
         this._goon = false;
     };
 
-    var delegater = function () {};
-    delegater.dobind=function(e){
-        var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
-        var hash=module.shortHashCode();
-        while (d && d !== window) {
-            var bindnamestr=topolr(d).dataset("bind");
-            if(bindnamestr){
-                var typemap={};
-                var bindnames=bindnamestr.split("-")[1].split(" ");
-                for(var i=0;i<bindnames.length;i++){
-                    var a=bindnames[i].split(":");
-                    typemap[a[0]]=a[1];
-                }
-                var name=typemap[e.type];
-                if(name){
-                    if (module["bind_" + name]) {
-                        e.stopPropagation = function () {
-                            this._ispropagation = true;
-                        };
-                        module["bind_" + name].call(module, topolr(d), e);
-                        if (e._ispropagation) {
-                            break;
+    var modulebinder = {
+        bind: function (module, props) {
+            for (var i in props) {
+                module.dom.bind(i, modulebinder.handler);
+            }
+        },
+        handler: function (e) {
+            var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
+            var hash = module.getShortUUID();
+            while (d && d !== window) {
+                var bindnamestr = topolr(d).dataset("bind");
+                if (bindnamestr) {
+                    var typemap = {};
+                    var bindnames = bindnamestr.split("-")[1].split(" ");
+                    for (var i = 0; i < bindnames.length; i++) {
+                        var a = bindnames[i].split(":");
+                        typemap[a[0]] = a[1];
+                    }
+                    var name = typemap[e.type];
+                    if (name) {
+                        if (module["bind_" + name]) {
+                            e.stopPropagation = function () {
+                                this._ispropagation = true;
+                            };
+                            module["bind_" + name].call(module, topolr(d), e);
+                            if (e._ispropagation) {
+                                break;
+                            }
                         }
                     }
                 }
+                if (d === m) {
+                    break;
+                }
+                d = d.parentNode;
             }
-            if (d === m) {
-                break;
-            }
-            d = d.parentNode;
-        }
-        e.stopPropagation();
-    };
-    delegater.bind=function(module,props){
-        for(var i in props){
-            module.dom.bind(i,delegater.dobind);
+            e.stopPropagation();
         }
     };
 
@@ -6907,9 +6911,6 @@
                     this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
                 this.dom.data("--view--", this);
-                // this._finders = new delegater();
-                // this._groups = new delegater();
-                // this._binders = new delegater();
                 if (this.dom.children().length > 0) {
                     this.template = this.dom.html();
                 }
@@ -7070,17 +7071,15 @@
             try {
                 var n = Array.prototype.slice.call(arguments);
                 if (ths.autodom) {
-                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n,ths.shortHashCode());
-                    delegater.bind(ths,ths.autodomc.getPropsSets());
-                    // delegater.delegate(ths);
+                    ths.autodomc = ths.dom.autodom(ths.template, ths.marcos, ["data"], n, ths.getShortUUID());
+                    modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                 } else {
-                    if(!ths.tempt) {
-                        ths.tempt = topolr.template(ths.template, ths.marcos, ["data"], ths.shortHashCode());
-                        delegater.bind(ths,ths.tempt.getPropsSets());
+                    if (!ths.tempt) {
+                        ths.tempt = topolr.template(ths.template, ths.marcos, ["data"], ths.getShortUUID());
+                        modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
                     tep.renderTo.apply(ths.tempt, n);
-                    // delegater.delegate(ths);
                 }
             } catch (e) {
                 console.error("[topolr] render called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7100,7 +7099,6 @@
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
                     this.autodomc.update(Array.prototype.slice.call(arguments));
-                    // delegater.delegate(this);
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -7212,13 +7210,13 @@
             }
         },
         finders: function (name) {
-            return this.dom.find("[data-find='"+(this.shortHashCode()+"-"+name)+"']");
+            return this.dom.find("[data-find='" + (this.getShortUUID() + "-" + name) + "']");
         },
         binders: function (name) {
-            return this.dom.find("[data-bind^='"+(this.shortHashCode()+"-")+"']");
+            return this.dom.find("[data-bind^='" + (this.getShortUUID() + "-") + "']");
         },
         groups: function (name) {
-            return this.dom.find("[data-group='g:"+(this.shortHashCode()+"-"+name)+"']");
+            return this.dom.find("[data-group='g:" + (this.getShortUUID() + "-" + name) + "']");
         },
         service_schange: function (data, info) {
             this.update(data);
@@ -7269,9 +7267,6 @@
                     this.layout = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
                 this.dom.data("--view--", this);
-                // this._finders = new delegater();
-                // this._groups = new delegater();
-                // this._binders = new delegater();
                 this._handlers = {};
                 this.children = [];
                 var ths = this, optionName = this.dom.dataset("option"), queue = topolr.queue();
@@ -7334,13 +7329,13 @@
                                         return "<" + prps.tagName + " class='" + prps.fullClassName + "' data-parent-view='" + ths.getId() + "' data-view='" + type + "' data-view-id='" + (id !== undefined && id !== null ? id : (ths.getId() + "-" + ths.children.length)) + "' data-option='" + (option || "") + "'></" + prps.tagName + ">";
                                     }
                                 }, ths.marcos);
-                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom,ths.shortHashCode());
+                                var tempt = topolr.template(str, _macro, ["data", "pid", "option"], ths.autodom, ths.getShortUUID());
                                 if (ths.autodom) {
-                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option],ths.shortHashCode());
-                                    delegater.bind(ths,ths.autodomc.getPropsSets());
+                                    ths.autodomc = ths.dom.autodom(tempt, _macro, ["data", "pid", "option"], [ths.option, ths.getId(), ths.option], ths.getShortUUID());
+                                    modulebinder.bind(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
-                                    ths.tempt=tempt;
-                                    delegater.bind(ths,ths.tempt.getPropsSets());
+                                    ths.tempt = tempt;
+                                    modulebinder.bind(ths, ths.tempt.getPropsHookInfo());
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
                                 }
                             } catch (e) {
@@ -7366,7 +7361,6 @@
                         queue.complete(function (a) {
                             a["name"] = a.type();
                             a["shortname"] = a.shortName();
-                            // delegater.delegate(a);
                             if (a.className && a.className !== "") {
                                 a.dom.addClass(a.className);
                             }
@@ -7546,7 +7540,6 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
-                // delegater.delegate(this);
             }
         },
         getChildrenByType: function (type) {
