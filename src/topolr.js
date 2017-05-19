@@ -5375,8 +5375,9 @@
             });
         }
     };
-    template.propshook = function (str,_propshookinfo) {
-        return str.replace(template.regs.df, function (str) {
+    template.propshook = function (str) {
+        var _propshookinfo={};
+        var r=str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
             return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
@@ -5392,6 +5393,10 @@
             var k = e.substring(7, e.length - 1);
             return "data-cache='<%=this._cache(" + k + ");%>'";
         });
+        return {
+            template:r,
+            propshookinfo:_propshookinfo
+        };
     };
     template.precompile = function (str, autodom) {
         str = str.replace(template.regs.a, "<").replace(template.regs.b, ">").replace(template.regs.h, "").replace(template.regs.f, "><").replace(template.regs.i, "").replace(template.regs.k, "").replace(template.regs.l, "");
@@ -5600,8 +5605,9 @@
                     path = app.option.basePath + pid + ".js";
                 }
             }
-            var _propshookinfo={};
-            temp = template.propshook.call(this, temp,_propshookinfo);
+            var ent=template.propshook(temp);
+            var _propshookinfo=ent.propshookinfo;
+            temp = ent.template;
             temp = template.beatySyntax.parse(temp);
             var a = template.precompile(temp, autodom);
             tcode = template.code(a.template, path);
