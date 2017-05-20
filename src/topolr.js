@@ -5318,23 +5318,28 @@
             "defaults": function (str) {
                 return "<%=" + str.substring(2, str.length - 2) + ";%>";
             },
+            "log":function(str){
+                return "<%console.log(" + str.join(" ") + ");%>";
+            },
             "map": function (str) {
                 var dataname = str.shift();
                 a.shift();
                 var keyname = a.shift() || "$value";
                 var indexname = a.shift() || "$key";
-                return "<%for(var " + indexname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + indexname + "];%>";
+                var iname="_"+util.randomid(8);
+                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];"+indexname+"="+iname+";%>";
             },
             "/map": function () {
                 return "<%}%>";
             },
             "list": function (a) {
-                console.log(a);
                 var dataname = a.shift();
                 a.shift();
                 var keyname = a.shift() || "$item";
                 var indexname = a.shift() || "$index";
-                return "<%for(var " + indexname + "=0,len=" + dataname + ".length;" + indexname + "<len;" + indexname + "++){ var " + keyname + "=" + dataname + "[" + indexname + "];%>";
+                var iname="_"+util.randomid(8);
+                var lenname="_"+util.randomid(6);
+                return "<%if("+dataname+"&&"+dataname+".length>=0)for(var " + iname + "=0,"+indexname+"=0,"+lenname+"=" + dataname + ".length;" + iname + "<"+lenname+";" + iname + "++){ var " + keyname + "=" + dataname + "[" + iname + "];"+indexname+"="+iname+";%>";
             },
             "/list": function (str) {
                 return "<%}%>";
@@ -5999,7 +6004,7 @@
         }).replace(/\[\[-code-\]\]/g, function (a, b, c) {
             var aa = cc.shift();
             if (aa && aa[0] === "=") {
-                return "\"+((" + aa.substring(1, aa.length - 1) + ")||'')+\"";
+                return "\"+((" + aa.substring(1, aa.length - 1) + ")!==undefined?("+ aa.substring(1, aa.length - 1) + "):'')+\"";
             } else {
                 return aa;
             }
@@ -6900,6 +6905,7 @@
         onnodeinserted: null,
         onchildremove: null,
         onservicechange: null,
+        onupdated:null,
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
@@ -7108,6 +7114,11 @@
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
+            }
+            try {
+                this.onupdated && this.onupdated();
+            }catch(e){
+                console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
             }
         },
         original: function (methods) {
@@ -7551,6 +7562,11 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
+                try {
+                    this.onupdated && this.onupdated();
+                }catch(e){
+                    console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
+                }
             }
         },
         getChildrenByType: function (type) {
