@@ -2484,12 +2484,12 @@
     query.prototype.trigger = function (type, data) {
         return event.util.trigger(this, type, data);
     };
-    query.prototype.bind = function (type, fn) {
+    query.prototype.bind = function (type, fn,capt) {
         if (is.isString(type)) {
-            return event.util.bind(this, type, fn);
+            return event.util.bind(this, type, fn,capt);
         } else if (is.isArray(type)) {
             for (var i = 0; i < type.length; i++) {
-                event.util.bind(this, type[i], fn);
+                event.util.bind(this, type[i], fn,capt);
             }
             return this;
         }
@@ -2783,12 +2783,15 @@
     windoc.prototype.height = function () {
         return window.innerHeight;
     };
-    windoc.prototype.bind = function (type, fn) {
+    windoc.prototype.bind = function (type, fn,capt) {
         if (is.isWindow(this.obj)) {
-            window.addEventListener(type, fn, false);
+            if(!capt){
+                capt=false;
+            }
+            window.addEventListener(type, fn, capt);
         } else {
             this.nodes = [this.obj];
-            event.util.bind(this, type, fn);
+            event.util.bind(this, type, fn,capt);
         }
         return this;
     };
@@ -2888,6 +2891,7 @@
             UIEvent: "DOMFocusIn,DOMFocusOut,DOMActivate",
             MutationEvent: "DOMSubtreeModified,DOMNodeInserted,DOMNodeRemoved,DOMNodeRemovedFromDocument,DOMNodeInsertedIntoDocument,DOMAttrModified,DOMCharacterDataModified"
         },
+        unbubble:["abort","abort","error","focus","load","mouseenter","mouseleave","resize","unload","scroll"],
         isEvent: function (type) {
             var result = {
                 type: type,
@@ -2901,7 +2905,10 @@
             }
             return result;
         },
-        bind: function (dom, type, fn) {
+        bind: function (dom, type, fn,capt) {
+            if(!capt){
+                capt=false;
+            }
             for (var i = 0; i < dom.nodes.length; i++) {
                 if (!dom.nodes[i].events) {
                     dom.nodes[i].events = {};
@@ -2912,7 +2919,7 @@
                     dom.nodes[i].events[type] = [];
                     dom.nodes[i].events[type].push(fn);
                 }
-                dom.nodes[i].addEventListener(type, event.trigger, false);
+                dom.nodes[i].addEventListener(type, event.trigger, capt);
             }
             return dom;
         },
@@ -3004,6 +3011,9 @@
                 }
             }
             return dom;
+        },
+        canBubbleUp:function (type) {
+            return event.util.unbubble.indexOf(type)===-1;
         }
     };
 
@@ -6382,7 +6392,11 @@
         },
         agentEvent: function (moduleobj, props) {
             for (var i in props) {
-                moduleobj.dom.bind(i, module.agentHandler);
+                if(event.util.canBubbleUp(i)) {
+                    moduleobj.dom.bind(i, module.agentHandler);
+                }else{
+                    moduleobj.dom.bind(i, module.agentHandler,true);
+                }
             }
         },
         agentHandler: function (e) {
