@@ -2891,7 +2891,7 @@
             UIEvent: "DOMFocusIn,DOMFocusOut,DOMActivate",
             MutationEvent: "DOMSubtreeModified,DOMNodeInserted,DOMNodeRemoved,DOMNodeRemovedFromDocument,DOMNodeInsertedIntoDocument,DOMAttrModified,DOMCharacterDataModified"
         },
-        unbubble:["abort","abort","error","focus","load","mouseenter","mouseleave","resize","unload","scroll"],
+        unbubbling:["unload","abort","error","scroll","focus","blur","DOMNodeRemovedFromDocument","DOMNodeInsertedIntoDocument","progress","load","loadend","pointerenter","pointerleave","rowexit","stop","finish","bounce","afterprint","propertychange","filterchange","readystatechange","losecapture","dragdrop","dragenter","dragexit","draggesture","dragover","RadioStateChange","close","command","contextmenu","overflow","overflowchanged","underflow","popuphidden","popuphiding","popupshowing","popupshown","commandupdate"],
         isEvent: function (type) {
             var result = {
                 type: type,
@@ -3013,7 +3013,7 @@
             return dom;
         },
         canBubbleUp:function (type) {
-            return event.util.unbubble.indexOf(type)===-1;
+            return event.util.unbubbling.indexOf(type)===-1;
         }
     };
 
@@ -6395,7 +6395,7 @@
                 if(event.util.canBubbleUp(i)) {
                     moduleobj.dom.bind(i, module.agentHandler);
                 }else{
-                    moduleobj.dom.bind(i, module.agentHandler,true);
+                    moduleobj.dom.bind(i, module.agentHandlerUnbubbeUp,true);
                 }
             }
         },
@@ -6405,21 +6405,24 @@
             while (d && d !== window) {
                 var bindnamestr = topolr(d).dataset("bind");
                 if (bindnamestr) {
-                    var typemap = {};
-                    var bindnames = bindnamestr.split("-")[1].split(" ");
-                    for (var i = 0; i < bindnames.length; i++) {
-                        var a = bindnames[i].split(":");
-                        typemap[a[0]] = a[1];
-                    }
-                    var name = typemap[e.type];
-                    if (name) {
-                        if (module["bind_" + name]) {
-                            e.stopPropagation = function () {
-                                this._ispropagation = true;
-                            };
-                            module["bind_" + name].call(module, topolr(d), e);
-                            if (e._ispropagation) {
-                                break;
+                    var typemap = {},_k=bindnamestr.split("-");
+                    var hashname=_k[0];
+                    var bindnames = _k[1].split(" ");
+                    if(hashname===hash) {
+                        for (var i = 0; i < bindnames.length; i++) {
+                            var a = bindnames[i].split(":");
+                            typemap[a[0]] = a[1];
+                        }
+                        var name = typemap[e.type];
+                        if (name) {
+                            if (module["bind_" + name]) {
+                                e.stopPropagation = function () {
+                                    this._ispropagation = true;
+                                };
+                                module["bind_" + name].call(module, topolr(d), e);
+                                if (e._ispropagation) {
+                                    break;
+                                }
                             }
                         }
                     }
@@ -6428,6 +6431,28 @@
                     break;
                 }
                 d = d.parentNode;
+            }
+        },
+        agentHandlerUnbubbeUp:function(e){
+            var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
+            var hash = module.getShortUUID();
+            var bindnamestr = topolr(d).dataset("bind");
+            if (bindnamestr) {
+                var typemap = {},_k=bindnamestr.split("-");
+                var bindhash=_k[0];
+                var bindnames = _k[1].split(" ");
+                if(bindhash===hash) {
+                    for (var i = 0; i < bindnames.length; i++) {
+                        var a = bindnames[i].split(":");
+                        typemap[a[0]] = a[1];
+                    }
+                    var name = typemap[e.type];
+                    if (name) {
+                        if (module["bind_" + name]) {
+                            module["bind_" + name].call(module, topolr(d), e);
+                        }
+                    }
+                }
             }
         }
     };
