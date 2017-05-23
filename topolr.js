@@ -1,14 +1,14 @@
 /**
- * version:1.5.0
+ * version:1.5.1
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:727942b6c57dd1b9be1e1f367c17f363
+ * hash:ad1455c202574d24057ede88459ed8c3
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.5.0"};
+    var topolrInfo = {"version":"1.5.1"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -4186,7 +4186,7 @@
                 txt = txt.replace(packet.regs.f, "><").replace(packet.regs.i, "").replace(packet.regs.k, "").replace(packet.regs.l, "");
                 txt = txt.replace(/src=['"].+?['"]/g, function (a) {
                     a = a.trim();
-                    if (a.indexOf("<%") === -1) {
+                    if (a.indexOf("<%") === -1&&a.indexOf("{{") === -1) {
                         var rp = a, path = a.substring(5, a.length - 1);
                         if (path.indexOf("http:") === 0 || path.indexOf("data:") === 0 || path.indexOf("https:") === 0) {
                             return "src=\"" + path + "\"";

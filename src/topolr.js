@@ -4178,7 +4178,7 @@
                 txt = txt.replace(packet.regs.f, "><").replace(packet.regs.i, "").replace(packet.regs.k, "").replace(packet.regs.l, "");
                 txt = txt.replace(/src=['"].+?['"]/g, function (a) {
                     a = a.trim();
-                    if (a.indexOf("<%") === -1) {
+                    if (a.indexOf("<%") === -1&&a.indexOf("{{") === -1) {
                         var rp = a, path = a.substring(5, a.length - 1);
                         if (path.indexOf("http:") === 0 || path.indexOf("data:") === 0 || path.indexOf("https:") === 0) {
                             return "src=\"" + path + "\"";
