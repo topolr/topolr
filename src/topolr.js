@@ -6225,7 +6225,8 @@
             macro: {},
             parameters: [],
             dataarray: [],
-            renderId: null
+            renderId: null,
+            renderDone:null
         }, option);
         if (is.isString(temp)) {
             this.tempt = topolr.template(temp, {
@@ -6242,19 +6243,19 @@
         dom.html(tempstr);
         this.tempt.flush(dom);
         this._isupdatequeue=[];
+        this._renderDone=ops.renderDone;
     };
-    autodomc.prototype.update=function(dataarray,fn){
+    autodomc.prototype.update=function(dataarray){
         if(this._isupdatequeue.length===0){
             var ths=this;
-            this._isupdatequeue.push({a:dataarray,b:fn});
+            this._isupdatequeue.push(dataarray);
             setTimeout(function(){
-                var etp=ths._isupdatequeue.pop();
-                ths._update(etp.a);
+                ths._update(ths._isupdatequeue.pop());
                 ths._isupdatequeue.length=0;
-                etp.b&&etp.b();
+                ths._renderDone&&ths._renderDone();
             },0);
         }else{
-            this._isupdatequeue.push({a:dataarray,b:fn});
+            this._isupdatequeue.push(dataarray);
         }
     };
     autodomc.prototype._update = function (dataarray) {
@@ -7132,7 +7133,14 @@
                         macro: ths.marcos,
                         parameters: ["data"],
                         dataarray: n,
-                        renderId: ths.getShortUUID()
+                        renderId: ths.getShortUUID(),
+                        renderDone:function(){
+                            try {
+                                ths.onupdated && ths.onupdated();
+                            }catch(e){
+                                console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
+                            }
+                        }
                     });
                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                 } else {
@@ -7164,22 +7172,10 @@
         update: function () {
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
-                    var ths=this;
-                    this.autodomc.update(Array.prototype.slice.call(arguments),function() {
-                        try {
-                            ths.onupdated && ths.onupdated();
-                        }catch(e){
-                            console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
-                        }
-                    });
+                    this.autodomc.update(Array.prototype.slice.call(arguments));
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
-                try {
-                    this.onupdated && this.onupdated();
-                }catch(e){
-                    console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
-                }
             }
         },
         original: function (methods) {
@@ -7413,7 +7409,14 @@
                                         macro: _macro,
                                         parameters: ["data", "pid", "option"],
                                         dataarray: [ths.option, ths.getId(), ths.option],
-                                        renderId: ths.getShortUUID()
+                                        renderId: ths.getShortUUID(),
+                                        renderDone:function(){
+                                            try {
+                                                ths.onupdated && ths.onupdated();
+                                            }catch(e){
+                                                console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
+                                            }
+                                        }
                                     });
                                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
@@ -7622,14 +7625,7 @@
         },
         update: function (data) {
             if (this.autodom && this.autodomc) {
-                var ths=this;
-                this.autodomc.update([data || this.option, this.getId(), this.option],function(){
-                    try {
-                        ths.onupdated && ths.onupdated();
-                    }catch(e){
-                        console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
-                    }
-                });
+                this.autodomc.update([data || this.option, this.getId(), this.option]);
             }
         },
         getChildrenByType: function (type) {
