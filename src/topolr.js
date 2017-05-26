@@ -6241,8 +6241,23 @@
         this.virt = this.tempt.autoDom.apply(this.tempt, ops.dataarray);
         dom.html(tempstr);
         this.tempt.flush(dom);
+        this._isupdatequeue=[];
     };
-    autodomc.prototype.update = function (dataarray) {
+    autodomc.prototype.update=function(dataarray,fn){
+        if(this._isupdatequeue.length===0){
+            var ths=this;
+            this._isupdatequeue.push({a:dataarray,b:fn});
+            setTimeout(function(){
+                var etp=ths._isupdatequeue.pop();
+                ths._update(etp.a);
+                ths._isupdatequeue.length=0;
+                etp.b&&etp.b();
+            },0);
+        }else{
+            this._isupdatequeue.push({a:dataarray,b:fn});
+        }
+    };
+    autodomc.prototype._update = function (dataarray) {
         var virt = this.tempt.autoDom.apply(this.tempt, dataarray);
         var q = template.diff(virt, this.virt);
         this.virt = virt;
@@ -7149,15 +7164,22 @@
         update: function () {
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
-                    this.autodomc.update(Array.prototype.slice.call(arguments));
+                    var ths=this;
+                    this.autodomc.update(Array.prototype.slice.call(arguments),function() {
+                        try {
+                            ths.onupdated && ths.onupdated();
+                        }catch(e){
+                            console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
+                        }
+                    });
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
-            }
-            try {
-                this.onupdated && this.onupdated();
-            }catch(e){
-                console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
+                try {
+                    this.onupdated && this.onupdated();
+                }catch(e){
+                    console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
+                }
             }
         },
         original: function (methods) {
@@ -7600,12 +7622,14 @@
         },
         update: function (data) {
             if (this.autodom && this.autodomc) {
-                this.autodomc.update([data || this.option, this.getId(), this.option]);
-                try {
-                    this.onupdated && this.onupdated();
-                }catch(e){
-                    console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
-                }
+                var ths=this;
+                this.autodomc.update([data || this.option, this.getId(), this.option],function(){
+                    try {
+                        ths.onupdated && ths.onupdated();
+                    }catch(e){
+                        console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
+                    }
+                });
             }
         },
         getChildrenByType: function (type) {
