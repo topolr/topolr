@@ -7325,7 +7325,6 @@
         name: "viewgroup",
         extend: "view",
         layout: null,
-        ondomready: null,
         oninitchild: null,
         oninitchildend: null,
         _render: function (fn) {
@@ -7382,6 +7381,11 @@
                             }
                         }
                         servicer.init(ths);
+                        try {
+                            ths.onbeforerender && ths.onbeforerender();
+                        } catch (e) {
+                            console.error("[topolr] onbeforerender called error with module of " + ths.type() + " Message:" + e.stack);
+                        }
                         var str = ths.layout;
                         if (!str && ths.dom.children().length > 0) {
                             str = ths.dom.html();
@@ -7429,12 +7433,10 @@
                                 ths.dom.html("");
                             }
                         }
-                        if (typeof ths.ondomready === 'function') {
-                            try {
-                                ths.ondomready(ths.option);
-                            } catch (e) {
-                                console.error("[topolr] ondomready called error with module of " + ths.type() + " Message:" + e.stack);
-                            }
+                        try {
+                            ths.onendrender && ths.onendrender();
+                        } catch (e) {
+                            console.error("[topolr] onendrender called error with module of " + ths.type() + " Message:" + e.stack);
                         }
                         if (typeof ths.onnodeinserted === 'function') {
                             try {
