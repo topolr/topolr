@@ -7317,6 +7317,18 @@
                 return null;
             }
         },
+        triggerService:function(){
+            var pars=Array.prototype.slice.call(arguments);
+            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+            pars.unshift(tname);
+            return this.getService(name).trigger.apply({},pars);
+        },
+        actionService:function(){
+            var pars=Array.prototype.slice.call(arguments);
+            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+            pars.unshift(tname);
+            return this.getService(name).action.apply({},pars);
+        },
         isRemoved: function () {
             return this.dom === null;
         }
