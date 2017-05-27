@@ -7427,11 +7427,13 @@
                                         dataarray: [ths.option, ths.getId(), ths.option],
                                         renderId: ths.getShortUUID(),
                                         renderDone:function(){
-                                            try {
-                                                ths.onupdated && ths.onupdated();
-                                            }catch(e){
-                                                console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
-                                            }
+                                            ths.privator("updatechild",function (a) {
+                                                try {
+                                                    a.onupdated && a.onupdated();
+                                                }catch(e){
+                                                    console.error("[topolr] onupdated called error with module of " + a.type() + " Message:" + e.stack);
+                                                }
+                                            });
                                         }
                                     });
                                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
@@ -7458,7 +7460,7 @@
                             }
                         }
                         ths._rendered = true;
-                        queue.complete(function (a) {
+                        ths.privator("updatechild",function (a) {
                             a["name"] = a.type();
                             a["shortname"] = a.shortName();
                             if (a.className && a.className !== "") {
@@ -7480,48 +7482,6 @@
                             }
                             fn && fn();
                         });
-                        ths.dom.find("*[data-parent-view='" + ths.getId() + "']").each(function () {
-                            queue.add(function (aa, dom) {
-                                var que = this;
-                                var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
-                                module.get(subview, null, function (k) {
-                                    for (var i = k.__info__.types.length - 1; i >= 0; i--) {
-                                        topolr.extend(ops, aa.option[k.__info__.types[i]]);
-                                    }
-                                    topolr.extend(ops, aa.option[subid]);
-                                    topolr.extend(k.option, ops);
-                                    if (!dom.data("--view--")) {
-                                        var obj = k;
-                                        obj.dom = dom;
-                                        obj.parentView = aa;
-                                        if (aa.oninitchild) {
-                                            try {
-                                                aa.oninitchild(obj);
-                                            } catch (e) {
-                                                console.error("[topolr] oninitchild called error with module of " + ths.type() + " Message:" + e.stack);
-                                            }
-                                        }
-                                        aa.children.push(obj);
-                                        obj.privator("render", function () {
-                                            if (aa.oninitchildend) {
-                                                try {
-                                                    aa.oninitchildend(obj);
-                                                } catch (e) {
-                                                    console.error("[topolr] oninitchildend called error with module of " + ths.type() + " Message:" + e.stack);
-                                                }
-                                            }
-                                            que.next(aa);
-                                        });
-                                    } else {
-                                        que.next(aa);
-                                    }
-                                });
-                            }, function (e, c) {
-                                console.error(c);
-                                this.next(ths);
-                            }, topolr(this));
-                        });
-                        queue.run(ths);
                     });
                 } catch (e) {
                     fn && fn();
@@ -7624,6 +7584,58 @@
                 callback && callback.call(null);
                 console.error(e.stack);
             }
+        },
+        _updatechild:function(fn){
+            var queue=topolr.queue(),ths=this;
+            queue.complete(function(a){
+                fn&&fn(a);
+            });
+            this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
+                queue.add(function (aa, dom) {
+                    var que = this;
+                    if(!dom.getModule()){
+                        var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
+                        module.get(subview, null, function (k) {
+                            for (var i = k.__info__.types.length - 1; i >= 0; i--) {
+                                topolr.extend(ops, aa.option[k.__info__.types[i]]);
+                            }
+                            topolr.extend(ops, aa.option[subid]);
+                            topolr.extend(k.option, ops);
+                            if (!dom.data("--view--")) {
+                                var obj = k;
+                                obj.dom = dom;
+                                obj.parentView = aa;
+                                if (aa.oninitchild) {
+                                    try {
+                                        aa.oninitchild(obj);
+                                    } catch (e) {
+                                        console.error("[topolr] oninitchild called error with module of " + ths.type() + " Message:" + e.stack);
+                                    }
+                                }
+                                aa.children.push(obj);
+                                obj.privator("render", function () {
+                                    if (aa.oninitchildend) {
+                                        try {
+                                            aa.oninitchildend(obj);
+                                        } catch (e) {
+                                            console.error("[topolr] oninitchildend called error with module of " + ths.type() + " Message:" + e.stack);
+                                        }
+                                    }
+                                    que.next(aa);
+                                });
+                            } else {
+                                que.next(aa);
+                            }
+                        });
+                    }else{
+                        que.next(aa);
+                    }
+                }, function (e, c) {
+                    console.error(c);
+                    this.next(ths);
+                }, topolr(this));
+            });
+            queue.run(this);
         },
         render: function () {
         },
