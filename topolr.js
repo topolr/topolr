@@ -1,14 +1,14 @@
 /**
- * version:1.5.1
+ * version:1.5.2
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:ad1455c202574d24057ede88459ed8c3
+ * hash:40dc71f0a8aa97114b768436851103bf
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.5.1"};
+    var topolrInfo = {"version":"1.5.2"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6233,7 +6233,8 @@
             macro: {},
             parameters: [],
             dataarray: [],
-            renderId: null
+            renderId: null,
+            renderDone:null
         }, option);
         if (is.isString(temp)) {
             this.tempt = topolr.template(temp, {
@@ -6249,8 +6250,23 @@
         this.virt = this.tempt.autoDom.apply(this.tempt, ops.dataarray);
         dom.html(tempstr);
         this.tempt.flush(dom);
+        this._isupdatequeue=[];
+        this._renderDone=ops.renderDone;
     };
-    autodomc.prototype.update = function (dataarray) {
+    autodomc.prototype.update=function(dataarray){
+        if(this._isupdatequeue.length===0){
+            var ths=this;
+            this._isupdatequeue.push(dataarray);
+            setTimeout(function(){
+                ths._update(ths._isupdatequeue.pop());
+                ths._isupdatequeue.length=0;
+                ths._renderDone&&ths._renderDone();
+            },0);
+        }else{
+            this._isupdatequeue.push(dataarray);
+        }
+    };
+    autodomc.prototype._update = function (dataarray) {
         var virt = this.tempt.autoDom.apply(this.tempt, dataarray);
         var q = template.diff(virt, this.virt);
         this.virt = virt;
@@ -7125,7 +7141,14 @@
                         macro: ths.marcos,
                         parameters: ["data"],
                         dataarray: n,
-                        renderId: ths.getShortUUID()
+                        renderId: ths.getShortUUID(),
+                        renderDone:function(){
+                            try {
+                                ths.onupdated && ths.onupdated();
+                            }catch(e){
+                                console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
+                            }
+                        }
                     });
                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                 } else {
@@ -7161,11 +7184,6 @@
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
-            }
-            try {
-                this.onupdated && this.onupdated();
-            }catch(e){
-                console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
             }
         },
         original: function (methods) {
@@ -7307,6 +7325,18 @@
                 return null;
             }
         },
+        triggerService:function(){
+            var pars=Array.prototype.slice.call(arguments);
+            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+            pars.unshift(tname);
+            return this.getService(name).trigger.apply({},pars);
+        },
+        actionService:function(){
+            var pars=Array.prototype.slice.call(arguments);
+            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+            pars.unshift(tname);
+            return this.getService(name).action.apply({},pars);
+        },
         isRemoved: function () {
             return this.dom === null;
         }
@@ -7315,7 +7345,6 @@
         name: "viewgroup",
         extend: "view",
         layout: null,
-        ondomready: null,
         oninitchild: null,
         oninitchildend: null,
         _render: function (fn) {
@@ -7372,6 +7401,11 @@
                             }
                         }
                         servicer.init(ths);
+                        try {
+                            ths.onbeforerender && ths.onbeforerender();
+                        } catch (e) {
+                            console.error("[topolr] onbeforerender called error with module of " + ths.type() + " Message:" + e.stack);
+                        }
                         var str = ths.layout;
                         if (!str && ths.dom.children().length > 0) {
                             str = ths.dom.html();
@@ -7399,7 +7433,16 @@
                                         macro: _macro,
                                         parameters: ["data", "pid", "option"],
                                         dataarray: [ths.option, ths.getId(), ths.option],
-                                        renderId: ths.getShortUUID()
+                                        renderId: ths.getShortUUID(),
+                                        renderDone:function(){
+                                            ths.privator("updatechild",function (a) {
+                                                try {
+                                                    a.onupdated && a.onupdated();
+                                                }catch(e){
+                                                    console.error("[topolr] onupdated called error with module of " + a.type() + " Message:" + e.stack);
+                                                }
+                                            });
+                                        }
                                     });
                                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
@@ -7412,12 +7455,10 @@
                                 ths.dom.html("");
                             }
                         }
-                        if (typeof ths.ondomready === 'function') {
-                            try {
-                                ths.ondomready(ths.option);
-                            } catch (e) {
-                                console.error("[topolr] ondomready called error with module of " + ths.type() + " Message:" + e.stack);
-                            }
+                        try {
+                            ths.onendrender && ths.onendrender();
+                        } catch (e) {
+                            console.error("[topolr] onendrender called error with module of " + ths.type() + " Message:" + e.stack);
                         }
                         if (typeof ths.onnodeinserted === 'function') {
                             try {
@@ -7427,7 +7468,7 @@
                             }
                         }
                         ths._rendered = true;
-                        queue.complete(function (a) {
+                        ths.privator("updatechild",function (a) {
                             a["name"] = a.type();
                             a["shortname"] = a.shortName();
                             if (a.className && a.className !== "") {
@@ -7449,48 +7490,6 @@
                             }
                             fn && fn();
                         });
-                        ths.dom.find("*[data-parent-view='" + ths.getId() + "']").each(function () {
-                            queue.add(function (aa, dom) {
-                                var que = this;
-                                var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
-                                module.get(subview, null, function (k) {
-                                    for (var i = k.__info__.types.length - 1; i >= 0; i--) {
-                                        topolr.extend(ops, aa.option[k.__info__.types[i]]);
-                                    }
-                                    topolr.extend(ops, aa.option[subid]);
-                                    topolr.extend(k.option, ops);
-                                    if (!dom.data("--view--")) {
-                                        var obj = k;
-                                        obj.dom = dom;
-                                        obj.parentView = aa;
-                                        if (aa.oninitchild) {
-                                            try {
-                                                aa.oninitchild(obj);
-                                            } catch (e) {
-                                                console.error("[topolr] oninitchild called error with module of " + ths.type() + " Message:" + e.stack);
-                                            }
-                                        }
-                                        aa.children.push(obj);
-                                        obj.privator("render", function () {
-                                            if (aa.oninitchildend) {
-                                                try {
-                                                    aa.oninitchildend(obj);
-                                                } catch (e) {
-                                                    console.error("[topolr] oninitchildend called error with module of " + ths.type() + " Message:" + e.stack);
-                                                }
-                                            }
-                                            que.next(aa);
-                                        });
-                                    } else {
-                                        que.next(aa);
-                                    }
-                                });
-                            }, function (e, c) {
-                                console.error(c);
-                                this.next(ths);
-                            }, topolr(this));
-                        });
-                        queue.run(ths);
                     });
                 } catch (e) {
                     fn && fn();
@@ -7594,6 +7593,58 @@
                 console.error(e.stack);
             }
         },
+        _updatechild:function(fn){
+            var queue=topolr.queue(),ths=this;
+            queue.complete(function(a){
+                fn&&fn(a);
+            });
+            this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
+                queue.add(function (aa, dom) {
+                    var que = this;
+                    if(!dom.getModule()){
+                        var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
+                        module.get(subview, null, function (k) {
+                            for (var i = k.__info__.types.length - 1; i >= 0; i--) {
+                                topolr.extend(ops, aa.option[k.__info__.types[i]]);
+                            }
+                            topolr.extend(ops, aa.option[subid]);
+                            topolr.extend(k.option, ops);
+                            if (!dom.data("--view--")) {
+                                var obj = k;
+                                obj.dom = dom;
+                                obj.parentView = aa;
+                                if (aa.oninitchild) {
+                                    try {
+                                        aa.oninitchild(obj);
+                                    } catch (e) {
+                                        console.error("[topolr] oninitchild called error with module of " + ths.type() + " Message:" + e.stack);
+                                    }
+                                }
+                                aa.children.push(obj);
+                                obj.privator("render", function () {
+                                    if (aa.oninitchildend) {
+                                        try {
+                                            aa.oninitchildend(obj);
+                                        } catch (e) {
+                                            console.error("[topolr] oninitchildend called error with module of " + ths.type() + " Message:" + e.stack);
+                                        }
+                                    }
+                                    que.next(aa);
+                                });
+                            } else {
+                                que.next(aa);
+                            }
+                        });
+                    }else{
+                        que.next(aa);
+                    }
+                }, function (e, c) {
+                    console.error(c);
+                    this.next(ths);
+                }, topolr(this));
+            });
+            queue.run(this);
+        },
         render: function () {
         },
         reRender: function () {
@@ -7609,11 +7660,6 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
-                try {
-                    this.onupdated && this.onupdated();
-                }catch(e){
-                    console.error("[topolr] onupdated called error with module of " + this.type() + " Message:" + e.stack);
-                }
             }
         },
         getChildrenByType: function (type) {
