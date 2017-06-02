@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        .o-btns{
+            width:400px;
+            margin:0 auto;
+            border-top:1px solid #D7D7D7;
+        }
+        .o-btn{
+            line-height:35px;
+            display:inline-block;
+            padding:0 20px 0 20px;
+        }
+    </style>
+    <script src="<%=request.getHttpPath();%>src/topolr.js" type="text/javascript"></script>
+    <script>
+        App({
+    "sitePath": "<%=request.getHttpPath();%>",
+    "basePath": "app/dist/",
+    "title": "sdata",
+    "description": "form of topolr",
+    "boot": "option.root.test",
+    "map": {
+        "d": true,
+        "m": {
+            "p": {
+                "option.root": "e3db1c0e1e",
+                "test": "cd6f2c6e8d"
+            },
+            "y": {
+                "style.qq": "81b0264924"
+            },
+            "c": {
+                "style.test": "cda3aeed34"
+            },
+            "t": {
+                "template.temp": "e2d3e7fb9d"
+            }
+        },
+        "c": {
+            "option-root-c1": {
+                "p": [
+                    "option.root",
+                    "test"
+                ],
+                "t": [
+                    "template.temp"
+                ],
+                "y": [
+                    "style.qq"
+                ]
+            }
+        },
+        "id": "4f0a77cb68465e3c2c94d39ad5dada26"
+    }
+}).boot(true);
+    </script>
+</head>
+<body>
+</body>
+</html>

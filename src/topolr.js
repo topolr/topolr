@@ -460,7 +460,7 @@
             }
             return hash;
         },
-        setReadOnlyProps:function (objn, obj) {
+        setReadOnlyProps: function (objn, obj) {
             for (var i in obj) {
                 Object.defineProperty(objn, i, {
                     enumerable: false,
@@ -2484,12 +2484,12 @@
     query.prototype.trigger = function (type, data) {
         return event.util.trigger(this, type, data);
     };
-    query.prototype.bind = function (type, fn,capt) {
+    query.prototype.bind = function (type, fn, capt) {
         if (is.isString(type)) {
-            return event.util.bind(this, type, fn,capt);
+            return event.util.bind(this, type, fn, capt);
         } else if (is.isArray(type)) {
             for (var i = 0; i < type.length; i++) {
-                event.util.bind(this, type[i], fn,capt);
+                event.util.bind(this, type[i], fn, capt);
             }
             return this;
         }
@@ -2783,15 +2783,15 @@
     windoc.prototype.height = function () {
         return window.innerHeight;
     };
-    windoc.prototype.bind = function (type, fn,capt) {
+    windoc.prototype.bind = function (type, fn, capt) {
         if (is.isWindow(this.obj)) {
-            if(!capt){
-                capt=false;
+            if (!capt) {
+                capt = false;
             }
             window.addEventListener(type, fn, capt);
         } else {
             this.nodes = [this.obj];
-            event.util.bind(this, type, fn,capt);
+            event.util.bind(this, type, fn, capt);
         }
         return this;
     };
@@ -2891,7 +2891,7 @@
             UIEvent: "DOMFocusIn,DOMFocusOut,DOMActivate",
             MutationEvent: "DOMSubtreeModified,DOMNodeInserted,DOMNodeRemoved,DOMNodeRemovedFromDocument,DOMNodeInsertedIntoDocument,DOMAttrModified,DOMCharacterDataModified"
         },
-        unbubbling:["unload","abort","error","scroll","focus","blur","DOMNodeRemovedFromDocument","DOMNodeInsertedIntoDocument","progress","load","loadend","pointerenter","pointerleave","rowexit","stop","finish","bounce","afterprint","propertychange","filterchange","readystatechange","losecapture","dragdrop","dragenter","dragexit","draggesture","dragover","RadioStateChange","close","command","contextmenu","overflow","overflowchanged","underflow","popuphidden","popuphiding","popupshowing","popupshown","commandupdate"],
+        unbubbling: ["unload", "abort", "error", "scroll", "focus", "blur", "DOMNodeRemovedFromDocument", "DOMNodeInsertedIntoDocument", "progress", "load", "loadend", "pointerenter", "pointerleave", "rowexit", "stop", "finish", "bounce", "afterprint", "propertychange", "filterchange", "readystatechange", "losecapture", "dragdrop", "dragenter", "dragexit", "draggesture", "dragover", "RadioStateChange", "close", "command", "contextmenu", "overflow", "overflowchanged", "underflow", "popuphidden", "popuphiding", "popupshowing", "popupshown", "commandupdate"],
         isEvent: function (type) {
             var result = {
                 type: type,
@@ -2905,9 +2905,9 @@
             }
             return result;
         },
-        bind: function (dom, type, fn,capt) {
-            if(!capt){
-                capt=false;
+        bind: function (dom, type, fn, capt) {
+            if (!capt) {
+                capt = false;
             }
             for (var i = 0; i < dom.nodes.length; i++) {
                 if (!dom.nodes[i].events) {
@@ -3012,8 +3012,8 @@
             }
             return dom;
         },
-        canBubbleUp:function (type) {
-            return event.util.unbubbling.indexOf(type)===-1;
+        canBubbleUp: function (type) {
+            return event.util.unbubbling.indexOf(type) === -1;
         }
     };
 
@@ -3743,7 +3743,8 @@
             css: "css-code-css-css-c",
             json: "json-text-content-json-s",
             image: "png-nothing-code-image-i",
-            text: "html-text-content-text-n"
+            text: "html-text-content-text-n",
+            style: "css-text-code-text-y"
         },
         sourceTypeAlias: {},
         current: {
@@ -4178,7 +4179,7 @@
                 txt = txt.replace(packet.regs.f, "><").replace(packet.regs.i, "").replace(packet.regs.k, "").replace(packet.regs.l, "");
                 txt = txt.replace(/src=['"].+?['"]/g, function (a) {
                     a = a.trim();
-                    if (a.indexOf("<%") === -1&&a.indexOf("{{") === -1) {
+                    if (a.indexOf("<%") === -1 && a.indexOf("{{") === -1) {
                         var rp = a, path = a.substring(5, a.length - 1);
                         if (path.indexOf("http:") === 0 || path.indexOf("data:") === 0 || path.indexOf("https:") === 0) {
                             return "src=\"" + path + "\"";
@@ -4371,6 +4372,7 @@
         this.json = [];
         this.image = [];
         this.text = [];
+        this.style = [];
         this.usestrict = false;
     };
     packetInfo.prototype.getTemplate = function (packetName, key) {
@@ -4479,7 +4481,8 @@
         json: "json",
         image: "png",
         include: "js",
-        require: "js"
+        require: "js",
+        style: "css"
     };
     packet.packetsmapping = {};
     packet.deleteR = function (str, len) {
@@ -4730,7 +4733,7 @@
                 info: aa,
                 code: packet.replacePacketNames.call(ths, aa, content)
             });
-            var ee = ["json", "html", "text", "js", "css", "template", "image"];
+            var ee = ["json", "html", "text", "js", "css", "template", "image", "style"];
             var queue = topolr.queue();
             for (var t in ee) {
                 var rtt = aa[ee[t]];
@@ -5061,7 +5064,7 @@
         var clazz = this._mapping[name];
         if (clazz) {
             obj = new clazz();
-            util.setReadOnlyProps(obj,{_uuid:util.uuid()});
+            util.setReadOnlyProps(obj, {_uuid: util.uuid()});
             obj.option = topolr.extend({}, topolr.json.clone(clazz.prototype.option), option);
         }
         return obj;
@@ -5292,7 +5295,7 @@
         this._session = null;
         this._caching = {};
         this._isupdate = false;
-        this._propshookinfo=tinfo.propshookinfo;
+        this._propshookinfo = tinfo.propshookinfo;
         topolr.extend(this._macrofn, template.globalMacro);
     };
     template.regs = {
@@ -5328,7 +5331,7 @@
             "defaults": function (str) {
                 return "<%=" + str.substring(2, str.length - 2) + ";%>";
             },
-            "log":function(str){
+            "log": function (str) {
                 return "<%console.log(" + str.join(" ") + ");%>";
             },
             "map": function (str) {
@@ -5336,8 +5339,8 @@
                 a.shift();
                 var keyname = a.shift() || "$value";
                 var indexname = a.shift() || "$key";
-                var iname="_"+util.randomid(8);
-                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];"+indexname+"="+iname+";%>";
+                var iname = "_" + util.randomid(8);
+                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];" + indexname + "=" + iname + ";%>";
             },
             "/map": function () {
                 return "<%}%>";
@@ -5347,9 +5350,9 @@
                 a.shift();
                 var keyname = a.shift() || "$item";
                 var indexname = a.shift() || "$index";
-                var iname="_"+util.randomid(8);
-                var lenname="_"+util.randomid(6);
-                return "<%if("+dataname+"&&"+dataname+".length>=0)for(var " + iname + "=0,"+indexname+"=0,"+lenname+"=" + dataname + ".length;" + iname + "<"+lenname+";" + iname + "++){ var " + keyname + "=" + dataname + "[" + iname + "];"+indexname+"="+iname+";%>";
+                var iname = "_" + util.randomid(8);
+                var lenname = "_" + util.randomid(6);
+                return "<%if(" + dataname + "&&" + dataname + ".length>=0)for(var " + iname + "=0," + indexname + "=0," + lenname + "=" + dataname + ".length;" + iname + "<" + lenname + ";" + iname + "++){ var " + keyname + "=" + dataname + "[" + iname + "];" + indexname + "=" + iname + ";%>";
             },
             "/list": function (str) {
                 return "<%}%>";
@@ -5391,8 +5394,8 @@
         }
     };
     template.propshook = function (str) {
-        var _propshookinfo={};
-        var r=str.replace(template.regs.df, function (str) {
+        var _propshookinfo = {};
+        var r = str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
             return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
@@ -5409,8 +5412,8 @@
             return "data-cache='<%=this._cache(" + k + ");%>'";
         });
         return {
-            template:r,
-            propshookinfo:_propshookinfo
+            template: r,
+            propshookinfo: _propshookinfo
         };
     };
     template.precompile = function (str, autodom) {
@@ -5620,8 +5623,8 @@
                     path = app.option.basePath + pid + ".js";
                 }
             }
-            var ent=template.propshook(temp);
-            var _propshookinfo=ent.propshookinfo;
+            var ent = template.propshook(temp);
+            var _propshookinfo = ent.propshookinfo;
             temp = ent.template;
             temp = template.beatySyntax.parse(temp);
             var a = template.precompile(temp, autodom);
@@ -5643,7 +5646,7 @@
                 path: path,
                 source: temp,
                 fns: [mt],
-                propshookinfo:_propshookinfo
+                propshookinfo: _propshookinfo
             };
             template.compileCache.push(r);
             return {
@@ -5654,7 +5657,7 @@
                 info: r.info,
                 path: r.path,
                 source: r.source,
-                propshookinfo:_propshookinfo
+                propshookinfo: _propshookinfo
             }
         } else {
             var mt = null;
@@ -5693,7 +5696,7 @@
                 info: r.info,
                 path: r.path,
                 source: r.source,
-                propshookinfo:r.propshookinfo
+                propshookinfo: r.propshookinfo
             }
         }
     };
@@ -6014,7 +6017,7 @@
         }).replace(/\[\[-code-\]\]/g, function (a, b, c) {
             var aa = cc.shift();
             if (aa && aa[0] === "=") {
-                return "\"+((" + aa.substring(1, aa.length - 1) + ")!==undefined?("+ aa.substring(1, aa.length - 1) + "):'')+\"";
+                return "\"+((" + aa.substring(1, aa.length - 1) + ")!==undefined?(" + aa.substring(1, aa.length - 1) + "):'')+\"";
             } else {
                 return aa;
             }
@@ -6226,7 +6229,7 @@
             parameters: [],
             dataarray: [],
             renderId: null,
-            renderDone:null
+            renderDone: null
         }, option);
         if (is.isString(temp)) {
             this.tempt = topolr.template(temp, {
@@ -6242,19 +6245,19 @@
         this.virt = this.tempt.autoDom.apply(this.tempt, ops.dataarray);
         dom.html(tempstr);
         this.tempt.flush(dom);
-        this._isupdatequeue=[];
-        this._renderDone=ops.renderDone;
+        this._isupdatequeue = [];
+        this._renderDone = ops.renderDone;
     };
-    autodomc.prototype.update=function(dataarray){
-        if(this._isupdatequeue.length===0){
-            var ths=this;
+    autodomc.prototype.update = function (dataarray) {
+        if (this._isupdatequeue.length === 0) {
+            var ths = this;
             this._isupdatequeue.push(dataarray);
-            setTimeout(function(){
+            setTimeout(function () {
                 ths._update(ths._isupdatequeue.pop());
-                ths._isupdatequeue.length=0;
-                ths._renderDone&&ths._renderDone();
-            },0);
-        }else{
+                ths._isupdatequeue.length = 0;
+                ths._renderDone && ths._renderDone();
+            }, 0);
+        } else {
             this._isupdatequeue.push(dataarray);
         }
     };
@@ -6279,7 +6282,9 @@
 
     var module = {
         regs: {
-            a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/
+            a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/,
+            cn: /\.[0-9a-zA-Z-]+/g,
+            cnn: /class=['"][\s\S]+?['"]/g
         },
         factory: topolr.adapt(),
         task: new dynamicQueue(),
@@ -6408,10 +6413,10 @@
         },
         agentEvent: function (moduleobj, props) {
             for (var i in props) {
-                if(event.util.canBubbleUp(i)) {
+                if (event.util.canBubbleUp(i)) {
                     moduleobj.dom.bind(i, module.agentHandler);
-                }else{
-                    moduleobj.dom.bind(i, module.agentHandlerUnbubbeUp,true);
+                } else {
+                    moduleobj.dom.bind(i, module.agentHandlerUnbubbeUp, true);
                 }
             }
         },
@@ -6421,10 +6426,10 @@
             while (d && d !== window) {
                 var bindnamestr = topolr(d).dataset("bind");
                 if (bindnamestr) {
-                    var typemap = {},_k=bindnamestr.split("-");
-                    var hashname=_k[0];
+                    var typemap = {}, _k = bindnamestr.split("-");
+                    var hashname = _k[0];
                     var bindnames = _k[1].split(" ");
-                    if(hashname===hash) {
+                    if (hashname === hash) {
                         for (var i = 0; i < bindnames.length; i++) {
                             var a = bindnames[i].split(":");
                             typemap[a[0]] = a[1];
@@ -6449,15 +6454,15 @@
                 d = d.parentNode;
             }
         },
-        agentHandlerUnbubbeUp:function(e){
+        agentHandlerUnbubbeUp: function (e) {
             var d = e.target, m = e.currentTarget, module = m.datasets["--view--"];
             var hash = module.getShortUUID();
             var bindnamestr = topolr(d).dataset("bind");
             if (bindnamestr) {
-                var typemap = {},_k=bindnamestr.split("-");
-                var bindhash=_k[0];
+                var typemap = {}, _k = bindnamestr.split("-");
+                var bindhash = _k[0];
                 var bindnames = _k[1].split(" ");
-                if(bindhash===hash) {
+                if (bindhash === hash) {
                     for (var i = 0; i < bindnames.length; i++) {
                         var a = bindnames[i].split(":");
                         typemap[a[0]] = a[1];
@@ -6469,6 +6474,52 @@
                         }
                     }
                 }
+            }
+        },
+        actionStyle: function (styleName, packetName, className) {
+            var mt = packet.packetsmapping[packetName].style, cdt = null;
+            for (var i = 0; i < mt.length; i++) {
+                if (mt[i].packet === styleName) {
+                    cdt = mt[i];
+                }
+            }
+            if (cdt) {
+                var code = cdt.value.code, str = code;
+                if (className) {
+                    str = code.replace(module.regs.cn, function (str) {
+                        return "." + className + "-" + str.substring(1);
+                    });
+                }
+                var b = document.getElementsByTagName("style"), has = false;
+                for (var i = 0; i < b.length; i++) {
+                    if (b[i].dataset && b[i].dataset.packet === styleName) {
+                        has = true;
+                    }
+                }
+                if (!has) {
+                    var _a = document.createElement("style");
+                    _a.setAttribute("media", "screen");
+                    _a.setAttribute("type", "text/css");
+                    _a.setAttribute("data-packet", styleName);
+                    _a.appendChild(document.createTextNode(str));
+                    document.getElementsByTagName("head")[0].appendChild(_a);
+                }
+            } else {
+                console.error("[topolr] style[" + styleName + "] can not find with module of " + packetName);
+            }
+        },
+        parseTemplate: function (code, className) {
+            if (className) {
+                return code.replace(module.regs.cnn, function (str) {
+                    var a = str.substring(7, str.length - 1).split(" "), r = [];
+                    for (var i = 0; i < a.length; i++) {
+                        r.push(className + "-" + a[i]);
+                    }
+                    var dot = str.substr(6, 1);
+                    return "class=" + dot + r.join(" ") + dot;
+                });
+            } else {
+                return code;
             }
         }
     };
@@ -6951,6 +7002,7 @@
         marcos: {},
         services: [],
         autodom: false,
+        style: "",
         init: null,
         template: "",
         onbeforeinit: null,
@@ -6960,7 +7012,7 @@
         onnodeinserted: null,
         onchildremove: null,
         onservicechange: null,
-        onupdated:null,
+        onupdated: null,
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
@@ -6968,6 +7020,10 @@
                     var a = this.template.split("."), _name = a.pop(), _packet = a.join(".");
                     this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
+                if (this.style) {
+                    module.actionStyle(this.style, this.packet(), this.className);
+                }
+                this.template = module.parseTemplate(this.template, this.className);
                 this.dom.data("--view--", this);
                 if (this.dom.children().length > 0) {
                     this.template = this.dom.html();
@@ -7134,10 +7190,10 @@
                         parameters: ["data"],
                         dataarray: n,
                         renderId: ths.getShortUUID(),
-                        renderDone:function(){
+                        renderDone: function () {
                             try {
                                 ths.onupdated && ths.onupdated();
-                            }catch(e){
+                            } catch (e) {
                                 console.error("[topolr] onupdated called error with module of " + ths.type() + " Message:" + e.stack);
                             }
                         }
@@ -7317,17 +7373,17 @@
                 return null;
             }
         },
-        triggerService:function(){
-            var pars=Array.prototype.slice.call(arguments);
-            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+        triggerService: function () {
+            var pars = Array.prototype.slice.call(arguments);
+            var _a = pars.shift().split("."), name = _a[0], tname = _a[1];
             pars.unshift(tname);
-            return this.getService(name).trigger.apply({},pars);
+            return this.getService(name).trigger.apply({}, pars);
         },
-        actionService:function(){
-            var pars=Array.prototype.slice.call(arguments);
-            var _a=pars.shift().split("."),name=_a[0],tname=_a[1];
+        actionService: function () {
+            var pars = Array.prototype.slice.call(arguments);
+            var _a = pars.shift().split("."), name = _a[0], tname = _a[1];
             pars.unshift(tname);
-            return this.getService(name).action.apply({},pars);
+            return this.getService(name).action.apply({}, pars);
         },
         isRemoved: function () {
             return this.dom === null;
@@ -7345,6 +7401,9 @@
                 if (module.isPacketName(this.layout)) {
                     var a = this.layout.split("."), _name = a.pop(), _packet = a.join(".");
                     this.layout = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
+                }
+                if (this.style) {
+                    module.actionStyle(this.style, this.packet(), this.className);
                 }
                 this.dom.data("--view--", this);
                 this._handlers = {};
@@ -7404,6 +7463,8 @@
                         }
                         if (topolr.is.isString(str)) {
                             try {
+                                str = module.parseTemplate(str, ths.className);
+                                ths.layout=str;
                                 var _macro = topolr.extend({
                                     module: function (attrs, render) {
                                         var type = attrs["type"], option = attrs["option"], id = attrs["id"];
@@ -7426,11 +7487,11 @@
                                         parameters: ["data", "pid", "option"],
                                         dataarray: [ths.option, ths.getId(), ths.option],
                                         renderId: ths.getShortUUID(),
-                                        renderDone:function(){
-                                            ths.privator("updatechild",function (a) {
+                                        renderDone: function () {
+                                            ths.privator("updatechild", function (a) {
                                                 try {
                                                     a.onupdated && a.onupdated();
-                                                }catch(e){
+                                                } catch (e) {
                                                     console.error("[topolr] onupdated called error with module of " + a.type() + " Message:" + e.stack);
                                                 }
                                             });
@@ -7460,7 +7521,7 @@
                             }
                         }
                         ths._rendered = true;
-                        ths.privator("updatechild",function (a) {
+                        ths.privator("updatechild", function (a) {
                             a["name"] = a.type();
                             a["shortname"] = a.shortName();
                             if (a.className && a.className !== "") {
@@ -7585,15 +7646,15 @@
                 console.error(e.stack);
             }
         },
-        _updatechild:function(fn){
-            var queue=topolr.queue(),ths=this;
-            queue.complete(function(a){
-                fn&&fn(a);
+        _updatechild: function (fn) {
+            var queue = topolr.queue(), ths = this;
+            queue.complete(function (a) {
+                fn && fn(a);
             });
             this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
                 queue.add(function (aa, dom) {
                     var que = this;
-                    if(!dom.getModule()){
+                    if (!dom.getModule()) {
                         var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
                         module.get(subview, null, function (k) {
                             for (var i = k.__info__.types.length - 1; i >= 0; i--) {
@@ -7627,7 +7688,7 @@
                                 que.next(aa);
                             }
                         });
-                    }else{
+                    } else {
                         que.next(aa);
                     }
                 }, function (e, c) {
