@@ -5926,6 +5926,7 @@
             for (var tp in props.final) {
                 if (t.getAttribute(tp) !== props.final[tp]) {
                     t.setAttribute(tp, props.final[tp]);
+                    t[tp]=props.final[tp];
                 }
                 var etm = attributes.indexOf(tp);
                 if (etm !== -1) {
@@ -6284,7 +6285,8 @@
         regs: {
             a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/,
             cn: /\.[0-9a-zA-Z-]+/g,
-            cnn: /class=['"][\s\S]+?['"]/g
+            cnn: /class=['"][\s\S]+?['"]/g,
+            d:/\{|\}/
         },
         factory: topolr.adapt(),
         task: new dynamicQueue(),
@@ -6477,39 +6479,58 @@
             }
         },
         actionStyle: function (styleName, packetName, className) {
-            var mt = packet.packetsmapping[packetName].style, cdt = null;
-            for (var i = 0; i < mt.length; i++) {
-                if (mt[i].packet === styleName) {
-                    cdt = mt[i];
+            if(styleName) {
+                var all=styleName;
+                if(is.isString(styleName)){
+                    all=[styleName];
                 }
-            }
-            if (cdt) {
-                var code = cdt.value.code, str = code;
-                if (className) {
-                    str = code.replace(module.regs.cn, function (str) {
-                        return "." + className + "-" + str.substring(1);
-                    });
-                }
-                var b = document.getElementsByTagName("style"), has = false;
-                for (var i = 0; i < b.length; i++) {
-                    if (b[i].dataset && b[i].dataset.packet === styleName) {
-                        has = true;
+                for(var m=0;m<all.length;m++) {
+                    var stylename=all[m];
+                    var mt = packet.packetsmapping[packetName].style, cdt = null;
+                    for (var i = 0; i < mt.length; i++) {
+                        if (mt[i].packet === stylename) {
+                            cdt = mt[i];
+                        }
+                    }
+                    if (cdt) {
+                        var code = cdt.value.code, str = code;
+                        if (className) {
+                            var _a = code.split(module.regs.d), r = [];
+                            for (var i = 0; i < _a.length; i++) {
+                                var _b = _a[i].trim();
+                                if ((i + 1) % 2 !== 0) {
+                                    r.push(_b.replace(module.regs.cn, function (str) {
+                                        return "." + className + "-" + str.substring(1);
+                                    }));
+                                } else {
+                                    _b && r.push("{" + _b + "}");
+                                }
+                            }
+                            str = r.join("");
+                        }
+                        var b = document.getElementsByTagName("style"), has = false;
+                        for (var i = 0; i < b.length; i++) {
+                            if (b[i].dataset && b[i].dataset.packet === stylename) {
+                                has = true;
+                            }
+                        }
+                        if (!has) {
+                            var _a = document.createElement("style");
+                            _a.setAttribute("media", "screen");
+                            _a.setAttribute("type", "text/css");
+                            _a.setAttribute("data-packet", stylename);
+                            _a.setAttribute("data-perfix", className);
+                            _a.appendChild(document.createTextNode(str));
+                            document.getElementsByTagName("head")[0].appendChild(_a);
+                        }
+                    } else {
+                        console.error("[topolr] style[" + stylename + "] can not find with module of " + packetName);
                     }
                 }
-                if (!has) {
-                    var _a = document.createElement("style");
-                    _a.setAttribute("media", "screen");
-                    _a.setAttribute("type", "text/css");
-                    _a.setAttribute("data-packet", styleName);
-                    _a.appendChild(document.createTextNode(str));
-                    document.getElementsByTagName("head")[0].appendChild(_a);
-                }
-            } else {
-                console.error("[topolr] style[" + styleName + "] can not find with module of " + packetName);
             }
         },
-        parseTemplate: function (code, className) {
-            if (className) {
+        parseTemplate: function (style,code, className) {
+            if (style&&className) {
                 return code.replace(module.regs.cnn, function (str) {
                     var a = str.substring(7, str.length - 1).split(" "), r = [];
                     for (var i = 0; i < a.length; i++) {
@@ -7020,10 +7041,8 @@
                     var a = this.template.split("."), _name = a.pop(), _packet = a.join(".");
                     this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
-                if (this.style) {
-                    module.actionStyle(this.style, this.packet(), this.className);
-                }
-                this.template = module.parseTemplate(this.template, this.className);
+                module.actionStyle(this.style, this.packet(), this.className);
+                this.template = module.parseTemplate(this.style,this.template, this.className);
                 this.dom.data("--view--", this);
                 if (this.dom.children().length > 0) {
                     this.template = this.dom.html();
@@ -7402,9 +7421,7 @@
                     var a = this.layout.split("."), _name = a.pop(), _packet = a.join(".");
                     this.layout = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
-                if (this.style) {
-                    module.actionStyle(this.style, this.packet(), this.className);
-                }
+                module.actionStyle(this.style, this.packet(), this.className);
                 this.dom.data("--view--", this);
                 this._handlers = {};
                 this.children = [];
@@ -7463,7 +7480,7 @@
                         }
                         if (topolr.is.isString(str)) {
                             try {
-                                str = module.parseTemplate(str, ths.className);
+                                str = module.parseTemplate(ths.style,str, ths.className);
                                 ths.layout=str;
                                 var _macro = topolr.extend({
                                     module: function (attrs, render) {

@@ -1,4 +1,5 @@
 <!--[test]-->
 <div class="line">
-    <div class="aa">sdsdsd</div>
+    <div class="aa" data-bind="click:add" @cache(data.name)>{{data.name}}</div>
+    <input type="text" data-bind="keyup:data" value="{{data.name}}"/>
 </div>
