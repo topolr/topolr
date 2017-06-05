@@ -27,10 +27,11 @@
         "m": {
             "p": {
                 "option.root": "e3db1c0e1e",
-                "test": "a4fd2b7e46"
+                "test": "0af6b97698",
+                "service.test": "acd1b862d8"
             },
             "y": {
-                "style.qq": "8d2a1d02b0"
+                "style.qq": "2de2c94d72"
             },
             "t": {
                 "template.temp": "0075821112"
@@ -40,7 +41,8 @@
             "option-root-c1": {
                 "p": [
                     "option.root",
-                    "test"
+                    "test",
+                    "service.test"
                 ],
                 "t": [
                     "template.temp"

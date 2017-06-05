@@ -2,6 +2,7 @@
  * @packet test;
  * @template template.temp;
  * @style style.qq;
+ * @require service.test;
  */
 Module({
     name:"test",
@@ -10,16 +11,14 @@ Module({
     template:"@temp.test",
     style:"@qq",
     autodom:true,
+    services:{"test":"@test.testservice"},
     init:function () {
-        this._data={name:"aa"};
-        this.render(this._data);
+        this.excuteService("test.set",{name:"aa"});
     },
     bind_add:function (dom) {
-        this._data.name=dom.cache()+1;
-        this.update(this._data);
+        this.excuteService("test.set",{name:this.excuteService("test.get").name+1});
     },
     bind_data:function (dom) {
-        this._data.name=dom.val();
-        this.update(this._data);
+        this.excuteService("test.set",{name:dom.val()});
     }
 });
