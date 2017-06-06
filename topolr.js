@@ -1,14 +1,14 @@
 /**
- * version:1.6.0
+ * version:1.6.1
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:93b540935ac39bf4fbecfbdee4ff1adf
+ * hash:ab4d47fd1fdcd841c7afa572ae68c948
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.0"};
+    var topolrInfo = {"version":"1.6.1"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5934,7 +5934,7 @@
             for (var tp in props.final) {
                 if (t.getAttribute(tp) !== props.final[tp]) {
                     t.setAttribute(tp, props.final[tp]);
-                    t[tp]=props.final[tp];
+                    t[tp] = props.final[tp];
                 }
                 var etm = attributes.indexOf(tp);
                 if (etm !== -1) {
@@ -6231,6 +6231,65 @@
         return new template(temp, option);
     };
 
+    var observe = function (obj, fn) {
+        this.fn = fn;
+        return observe.setObserve.call(this, obj);
+    };
+    observe.setunwrite = function (obj, key, value) {
+        Object.defineProperty(obj, key, {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: value
+        });
+    };
+    observe.setwrite=function(obj,key,value){
+        var ths=this;
+        var val = observe.setObserve(value);
+        Object.defineProperty(obj, key, {
+            enumerable: true,
+            configurable: true,
+            get: function () {
+                return val;
+            },
+            set: function (value) {
+                if (value !== val) {
+                    val = observe.setObserve.call(ths, value);
+                    ths.fn && ths.fn();
+                }
+            }
+        });
+    };
+    observe.setObserve = function (obj) {
+        var ths = this;
+        if (is.isArray(obj)) {
+            observe.setunwrite(obj, "splice", function () {
+                return Array.prototype.splice.apply(this, news);
+            });
+            observe.setunwrite(obj, "pop", function () {
+                return Array.prototype.pop.call(this);
+            });
+            observe.setunwrite(obj, "push", function (obj) {
+                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+            });
+            observe.setunwrite(obj, "shift", function () {
+                return Array.prototype.shift.call(this);
+            });
+            observe.setunwrite(obj, "unshift", function (obj) {
+                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+            });
+        } else if (is.isObject(obj)) {
+            var keys = Object.keys(obj);
+            for (var q = 0; q < keys.length; q++) {
+                observe.setwrite.call(ths,obj, keys[q], obj[keys[q]])
+            }
+        }
+        return obj;
+    };
+    topolr.observe = function (obj, fn) {
+        return new observe(obj, fn);
+    };
+
     var autodomc = function (dom, temp, option) {
         this.dom = dom;
         var ops = topolr.extend({
@@ -6254,21 +6313,19 @@
         this.virt = this.tempt.autoDom.apply(this.tempt, ops.dataarray);
         dom.html(tempstr);
         this.tempt.flush(dom);
-        this._isupdatequeue = [];
+        this._isupdatequeue = null;
         this._renderDone = ops.renderDone;
     };
     autodomc.prototype.update = function (dataarray) {
-        if (this._isupdatequeue.length === 0) {
+        if (!this._isupdatequeue) {
             var ths = this;
-            this._isupdatequeue.push(dataarray);
             setTimeout(function () {
-                ths._update(ths._isupdatequeue.pop());
-                ths._isupdatequeue.length = 0;
+                ths._update(ths._isupdatequeue);
+                ths._isupdatequeue = null;
                 ths._renderDone && ths._renderDone();
             }, 0);
-        } else {
-            this._isupdatequeue.push(dataarray);
         }
+        this._isupdatequeue = dataarray;
     };
     autodomc.prototype._update = function (dataarray) {
         var virt = this.tempt.autoDom.apply(this.tempt, dataarray);
@@ -6294,7 +6351,7 @@
             a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/,
             cn: /\.[0-9a-zA-Z-]+/g,
             cnn: /class=['"][\s\S]+?['"]/g,
-            d:/\{|\}/
+            d: /\{|\}/
         },
         factory: topolr.adapt(),
         task: new dynamicQueue(),
@@ -6487,13 +6544,13 @@
             }
         },
         actionStyle: function (styleName, packetName, className) {
-            if(styleName) {
-                var all=styleName;
-                if(is.isString(styleName)){
-                    all=[styleName];
+            if (styleName) {
+                var all = styleName;
+                if (is.isString(styleName)) {
+                    all = [styleName];
                 }
-                for(var m=0;m<all.length;m++) {
-                    var stylename=all[m];
+                for (var m = 0; m < all.length; m++) {
+                    var stylename = all[m];
                     var mt = packet.packetsmapping[packetName].style, cdt = null;
                     for (var i = 0; i < mt.length; i++) {
                         if (mt[i].packet === stylename) {
@@ -6537,8 +6594,8 @@
                 }
             }
         },
-        parseTemplate: function (style,code, className) {
-            if (style&&className) {
+        parseTemplate: function (style, code, className) {
+            if (style && className) {
                 return code.replace(module.regs.cnn, function (str) {
                     var a = str.substring(7, str.length - 1).split(" "), r = [];
                     for (var i = 0; i < a.length; i++) {
@@ -6711,6 +6768,9 @@
         });
         try {
             a.init();
+            if(a.autodata) {
+                a.observe();
+            }
         } catch (e) {
             console.error("[topolr] service init called error name of " + type + " " + e.stack);
         }
@@ -6861,6 +6921,7 @@
         option: {
             reverse: false
         },
+        autodata:false,
         trigger: function (type, data) {
             var _type = "schange", _data = null;
             if (arguments.length === 0) {
@@ -7002,6 +7063,15 @@
                 }).resolve(task);
             }
         },
+        observe:function(){
+            if(this.autodata) {
+                var ths = this;
+                topolr.observe(this.data, function () {
+                    ths.trigger();
+                });
+            }
+            return this;
+        },
         action_get: function () {
             return this.data;
         },
@@ -7050,7 +7120,7 @@
                     this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
-                this.template = module.parseTemplate(this.style,this.template, this.className);
+                this.template = module.parseTemplate(this.style, this.template, this.className);
                 this.dom.data("--view--", this);
                 if (this.dom.children().length > 0) {
                     this.template = this.dom.html();
@@ -7406,11 +7476,16 @@
             pars.unshift(tname);
             return this.getService(name).trigger.apply({}, pars);
         },
-        actionService: function () {
+        excuteService: function () {
             var pars = Array.prototype.slice.call(arguments);
             var _a = pars.shift().split("."), name = _a[0], tname = _a[1];
             pars.unshift(tname);
-            return this.getService(name).action.apply({}, pars);
+            var c = this.getService(name);
+            if (c) {
+                return c.action.apply({}, pars);
+            } else {
+                throw Error("service can not find name is " + name + ",view is " + this.type());
+            }
         },
         isRemoved: function () {
             return this.dom === null;
@@ -7422,6 +7497,7 @@
         layout: null,
         oninitchild: null,
         oninitchildend: null,
+        option:{},
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
@@ -7488,8 +7564,8 @@
                         }
                         if (topolr.is.isString(str)) {
                             try {
-                                str = module.parseTemplate(ths.style,str, ths.className);
-                                ths.layout=str;
+                                str = module.parseTemplate(ths.style, str, ths.className);
+                                ths.layout = str;
                                 var _macro = topolr.extend({
                                     module: function (attrs, render) {
                                         var type = attrs["type"], option = attrs["option"], id = attrs["id"];
