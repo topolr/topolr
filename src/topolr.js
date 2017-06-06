@@ -6760,7 +6760,9 @@
         });
         try {
             a.init();
-            a.observe();
+            if(a.autodata) {
+                a.observe();
+            }
         } catch (e) {
             console.error("[topolr] service init called error name of " + type + " " + e.stack);
         }
@@ -6911,6 +6913,7 @@
         option: {
             reverse: false
         },
+        autodata:false,
         trigger: function (type, data) {
             var _type = "schange", _data = null;
             if (arguments.length === 0) {
@@ -7053,10 +7056,12 @@
             }
         },
         observe:function(){
-            var ths=this;
-            topolr.observe(this.data, function () {
-                ths.trigger();
-            });
+            if(this.autodata) {
+                var ths = this;
+                topolr.observe(this.data, function () {
+                    ths.trigger();
+                });
+            }
             return this;
         },
         action_get: function () {
