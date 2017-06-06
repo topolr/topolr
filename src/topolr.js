@@ -7489,6 +7489,7 @@
         layout: null,
         oninitchild: null,
         oninitchildend: null,
+        option:{},
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
