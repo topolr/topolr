@@ -6235,8 +6235,8 @@
             value: value
         });
     };
-    observe.setwrite=function(obj,key,value){
-        var ths=this;
+    observe.setwrite = function (obj, key, value) {
+        var ths = this;
         var val = observe.setObserve(value);
         Object.defineProperty(obj, key, {
             enumerable: true,
@@ -6273,7 +6273,7 @@
         } else if (is.isObject(obj)) {
             var keys = Object.keys(obj);
             for (var q = 0; q < keys.length; q++) {
-                observe.setwrite.call(ths,obj, keys[q], obj[keys[q]])
+                observe.setwrite.call(ths, obj, keys[q], obj[keys[q]])
             }
         }
         return obj;
@@ -6587,14 +6587,14 @@
             }
         },
         parseTemplate: function (style, code, className) {
-            if (style&&className) {
+            if (style && className) {
                 return code.replace(module.regs.cnn, function (str) {
-                    var val=str.substring(7, str.length - 1).trim();
+                    var val = str.substring(7, str.length - 1).trim();
                     var a = val.split(" "), r = [];
                     for (var i = 0; i < a.length; i++) {
-                        if(a[i][0]===":"){
+                        if (a[i][0] === ":") {
                             r.push(a[i].substring(1));
-                        }else{
+                        } else {
                             r.push(className + "-" + a[i]);
                         }
                     }
@@ -6765,7 +6765,7 @@
         });
         try {
             a.init();
-            if(a.autodata) {
+            if (a.autodata) {
                 a.observe();
             }
         } catch (e) {
@@ -6918,7 +6918,7 @@
         option: {
             reverse: false
         },
-        autodata:false,
+        autodata: false,
         trigger: function (type, data) {
             var _type = "schange", _data = null;
             if (arguments.length === 0) {
@@ -7060,8 +7060,8 @@
                 }).resolve(task);
             }
         },
-        observe:function(){
-            if(this.autodata) {
+        observe: function () {
+            if (this.autodata) {
                 var ths = this;
                 topolr.observe(this.data, function () {
                     ths.trigger();
@@ -7126,7 +7126,7 @@
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
-                    var cln = prps.fullClassName;
+                    var cln = prps.fullClassName + (this.style ? " " + this.className + "-" + this.className : "")
                     if (this.dom.get(0).tagName.toLowerCase() !== this.tagName) {
                         var a = topolr("<" + prps.tagName + " class='" + cln + "' data-view='" + this.dom.dataset("view") + "' data-parent-view='" + this.dom.dataset("parentView") + "' data-view-id='" + this.dom.dataset("viewId") + "' daa-option='" + this.dom.dataset("option") + "'></" + prps.tagName + ">");
                         this.dom.get(0).parentNode.replaceChild(a.get(0), this.dom.get(0));
@@ -7494,7 +7494,7 @@
         layout: null,
         oninitchild: null,
         oninitchildend: null,
-        option:{},
+        option: {},
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
@@ -7510,7 +7510,7 @@
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
-                    var cln = prps.fullClassName;
+                    var cln = prps.fullClassName + (this.style ? " " + this.className + "-" + this.className : "")
                     if (this.dom.get(0).tagName.toLowerCase() !== this.tagName) {
                         var a = topolr("<" + prps.tagName + " class='" + cln + "' data-view='" + this.dom.dataset("view") + "' data-parent-view='" + this.dom.dataset("parentView") + "' data-view-id='" + this.dom.dataset("viewId") + "' daa-option='" + this.dom.dataset("option") + "'></" + prps.tagName + ">");
                         this.dom.get(0).parentNode.replaceChild(a.get(0), this.dom.get(0));
@@ -7672,7 +7672,7 @@
                     } else {
                         ths.children.splice(xindex, 0, sobj);
                     }
-                    var cln = module.factory._mapping[sobj.type()].prototype.fullClassName;
+                    var cln = module.factory._mapping[sobj.type()].prototype.fullClassName + (sobj.style ? " " + sobj.className + "-" + sobj.className : "");
                     var coner = topolr(ops.container);
                     var pdom = topolr("<" + sobj.tagName + " class='" + cln + "' data-parent-view='" + ths.getId() + "' data-view='" + ops.type + "' data-view-id='" + ops.id + "' data-option='" + (is.isObject(ops.option) ? "" : ops.option) + "'></" + sobj.tagName + ">");
                     if (is.isNumber(ops.domIndex)) {
