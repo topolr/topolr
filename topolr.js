@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:db1cef547bd2e28942a2c21e81904ae1
+ * hash:30979aa96f75462c61cd94bf25030d6a
  */
 (function () {
     "use strict";
@@ -6595,11 +6595,16 @@
             }
         },
         parseTemplate: function (style, code, className) {
-            if (style && className) {
+            if (style&&className) {
                 return code.replace(module.regs.cnn, function (str) {
-                    var a = str.substring(7, str.length - 1).split(" "), r = [];
+                    var val=str.substring(7, str.length - 1).trim();
+                    var a = val.split(" "), r = [];
                     for (var i = 0; i < a.length; i++) {
-                        r.push(className + "-" + a[i]);
+                        if(a[i][0]===":"){
+                            r.push(a[i].substring(1));
+                        }else{
+                            r.push(className + "-" + a[i]);
+                        }
                     }
                     var dot = str.substr(6, 1);
                     return "class=" + dot + r.join(" ") + dot;
