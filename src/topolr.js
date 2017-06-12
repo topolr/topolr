@@ -6557,7 +6557,11 @@
                                 var _b = _a[i].trim();
                                 if ((i + 1) % 2 !== 0) {
                                     r.push(_b.replace(module.regs.cn, function (str) {
-                                        return "." + className + "-" + str.substring(1);
+                                        if (str.substring(1).trim() !== className) {
+                                            return "." + className + "-" + str.substring(1);
+                                        } else {
+                                            return str;
+                                        }
                                     }));
                                 } else {
                                     _b && r.push("{" + _b + "}");
@@ -7126,7 +7130,7 @@
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
-                    var cln = prps.fullClassName + (this.style ? " " + this.className + "-" + this.className : "")
+                    var cln = prps.fullClassName;
                     if (this.dom.get(0).tagName.toLowerCase() !== this.tagName) {
                         var a = topolr("<" + prps.tagName + " class='" + cln + "' data-view='" + this.dom.dataset("view") + "' data-parent-view='" + this.dom.dataset("parentView") + "' data-view-id='" + this.dom.dataset("viewId") + "' daa-option='" + this.dom.dataset("option") + "'></" + prps.tagName + ">");
                         this.dom.get(0).parentNode.replaceChild(a.get(0), this.dom.get(0));
@@ -7510,7 +7514,7 @@
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
-                    var cln = prps.fullClassName + (this.style ? " " + this.className + "-" + this.className : "")
+                    var cln = prps.fullClassName;
                     if (this.dom.get(0).tagName.toLowerCase() !== this.tagName) {
                         var a = topolr("<" + prps.tagName + " class='" + cln + "' data-view='" + this.dom.dataset("view") + "' data-parent-view='" + this.dom.dataset("parentView") + "' data-view-id='" + this.dom.dataset("viewId") + "' daa-option='" + this.dom.dataset("option") + "'></" + prps.tagName + ">");
                         this.dom.get(0).parentNode.replaceChild(a.get(0), this.dom.get(0));
@@ -7672,7 +7676,7 @@
                     } else {
                         ths.children.splice(xindex, 0, sobj);
                     }
-                    var cln = module.factory._mapping[sobj.type()].prototype.fullClassName + (sobj.style ? " " + sobj.className + "-" + sobj.className : "");
+                    var cln = module.factory._mapping[sobj.type()].prototype.fullClassName;
                     var coner = topolr(ops.container);
                     var pdom = topolr("<" + sobj.tagName + " class='" + cln + "' data-parent-view='" + ths.getId() + "' data-view='" + ops.type + "' data-view-id='" + ops.id + "' data-option='" + (is.isObject(ops.option) ? "" : ops.option) + "'></" + sobj.tagName + ">");
                     if (is.isNumber(ops.domIndex)) {
