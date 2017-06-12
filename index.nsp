@@ -26,12 +26,19 @@
         "d": true,
         "m": {
             "p": {
-                "option.root": "e654898b8b",
-                "service.test": "e06eb524fd",
-                "test": "41f075807b"
+                "action": "baf5776354",
+                "option.root": "e3db1c0e1e",
+                "service.test": "9ddc16c00d",
+                "test": "3afb113ff1"
+            },
+            "c": {
+                "style.icon": "312bbc92d8"
+            },
+            "y": {
+                "style.qq": "2de2c94d72"
             },
             "t": {
-                "template.temp": "0075821112"
+                "template.temp": "4ecd3765f2"
             }
         },
         "c": {
@@ -39,14 +46,21 @@
                 "p": [
                     "option.root",
                     "test",
-                    "service.test"
+                    "service.test",
+                    "action"
+                ],
+                "c": [
+                    "style.icon"
                 ],
                 "t": [
                     "template.temp"
+                ],
+                "y": [
+                    "style.qq"
                 ]
             }
         },
-        "id": "924efce7878f3a9921030531bd976256"
+        "id": "4f0a77cb68465e3c2c94d39ad5dada26"
     }
 }).boot(true);
     </script>

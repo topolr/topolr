@@ -3,3 +3,11 @@
     <div class="aa" data-bind="click:add" @cache(data.name)>{{data.name}}</div>
     <input type="text" data-bind="keyup:data" value="{{data.name}}"/>
 </div>
+<div>
+    {{list data.list as item}}
+    <div class="item">
+        <div class="name">{{item.name}}</div>
+        <div class="icon"><svg class=":mt-icon"><use xlink:href="#mt-icon-envelope-o"></use></svg></div>
+    </div>
+    {{/list}}
+</div>

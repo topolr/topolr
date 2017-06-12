@@ -7,7 +7,16 @@ Module({
     autodata:true,
     init:function(){
         this.data={
-            name:""
+            name:"",
+            list:[]
         };
+    },
+    action_name:function (name) {
+        this.data.name=name;
+    },
+    action_add:function (name) {
+        this.data.list.push({
+            name:name
+        });
     }
 });

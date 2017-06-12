@@ -5830,16 +5830,37 @@
             return true;
         }
     };
-    template.element = function (data) {
+    template.element = function (data, issvg) {
+        if (data.tag === "svg") {
+            !issvg ? (issvg = true) : "";
+        }
         if (data.content !== undefined) {
-            return window.document.createTextNode(data.content);
+            if (issvg) {
+                return window.document.createElementNS("http://www.w3.org/2000/svg", "text");
+            } else {
+                return window.document.createTextNode(data.content);
+            }
         } else {
-            var t = window.document.createElement(data.tag);
+            var t = null;
+            if (!issvg) {
+                t = window.document.createElement(data.tag);
+            } else {
+                t = window.document.createElementNS("http://www.w3.org/2000/svg", data.tag);
+            }
             for (var i in data.props) {
-                t.setAttribute(i, data.props[i]);
+                if (!issvg) {
+                    t.setAttribute(i, data.props[i]);
+                } else {
+                    var a = i.split(":");
+                    if (a.length > 1) {
+                        t.setAttributeNS("http://www.w3.org/1999/" + a[0], a[1], data.props[i]);
+                    } else {
+                        t.setAttributeNS(null, a[0], data.props[i]);
+                    }
+                }
             }
             for (var i = 0; i < data.children.length; i++) {
-                t.appendChild(template.element(data.children[i]));
+                t.appendChild(template.element(data.children[i], issvg));
             }
             return t;
         }
@@ -6256,19 +6277,24 @@
         var ths = this;
         if (is.isArray(obj)) {
             observe.setunwrite(obj, "splice", function () {
-                return Array.prototype.splice.apply(this, news);
+                ths.fn && ths.fn();
+                return Array.prototype.splice.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "pop", function () {
-                return Array.prototype.pop.call(this);
+                ths.fn && ths.fn();
+                return Array.prototype.pop.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "push", function (obj) {
-                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+                ths.fn && ths.fn();
+                return Array.prototype.push.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "shift", function () {
-                return Array.prototype.shift.call(this);
+                ths.fn && ths.fn();
+                return Array.prototype.shift.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "unshift", function (obj) {
-                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+                ths.fn && ths.fn();
+                return Array.prototype.unshift.apply(this, Array.prototype.slice.call(arguments));
             });
         } else if (is.isObject(obj)) {
             var keys = Object.keys(obj);

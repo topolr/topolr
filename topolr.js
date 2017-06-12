@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:30979aa96f75462c61cd94bf25030d6a
+ * hash:ea1d3d0d229bd0ae55b3d4b6c302c365
  */
 (function () {
     "use strict";
@@ -5838,16 +5838,37 @@
             return true;
         }
     };
-    template.element = function (data) {
+    template.element = function (data, issvg) {
+        if (data.tag === "svg") {
+            !issvg ? (issvg = true) : "";
+        }
         if (data.content !== undefined) {
-            return window.document.createTextNode(data.content);
+            if (issvg) {
+                return window.document.createElementNS("http://www.w3.org/2000/svg", "text");
+            } else {
+                return window.document.createTextNode(data.content);
+            }
         } else {
-            var t = window.document.createElement(data.tag);
+            var t = null;
+            if (!issvg) {
+                t = window.document.createElement(data.tag);
+            } else {
+                t = window.document.createElementNS("http://www.w3.org/2000/svg", data.tag);
+            }
             for (var i in data.props) {
-                t.setAttribute(i, data.props[i]);
+                if (!issvg) {
+                    t.setAttribute(i, data.props[i]);
+                } else {
+                    var a = i.split(":");
+                    if (a.length > 1) {
+                        t.setAttributeNS("http://www.w3.org/1999/" + a[0], a[1], data.props[i]);
+                    } else {
+                        t.setAttributeNS(null, a[0], data.props[i]);
+                    }
+                }
             }
             for (var i = 0; i < data.children.length; i++) {
-                t.appendChild(template.element(data.children[i]));
+                t.appendChild(template.element(data.children[i], issvg));
             }
             return t;
         }
@@ -6243,8 +6264,8 @@
             value: value
         });
     };
-    observe.setwrite=function(obj,key,value){
-        var ths=this;
+    observe.setwrite = function (obj, key, value) {
+        var ths = this;
         var val = observe.setObserve(value);
         Object.defineProperty(obj, key, {
             enumerable: true,
@@ -6264,24 +6285,29 @@
         var ths = this;
         if (is.isArray(obj)) {
             observe.setunwrite(obj, "splice", function () {
-                return Array.prototype.splice.apply(this, news);
+                ths.fn && ths.fn();
+                return Array.prototype.splice.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "pop", function () {
-                return Array.prototype.pop.call(this);
+                ths.fn && ths.fn();
+                return Array.prototype.pop.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "push", function (obj) {
-                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+                ths.fn && ths.fn();
+                return Array.prototype.push.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "shift", function () {
-                return Array.prototype.shift.call(this);
+                ths.fn && ths.fn();
+                return Array.prototype.shift.apply(this, Array.prototype.slice.call(arguments));
             });
             observe.setunwrite(obj, "unshift", function (obj) {
-                return Array.prototype.push.call(this, observe.setObserve(this["_*_"].name, this["_*_"].key + "*", obj, this, this["_*_"].fn));
+                ths.fn && ths.fn();
+                return Array.prototype.unshift.apply(this, Array.prototype.slice.call(arguments));
             });
         } else if (is.isObject(obj)) {
             var keys = Object.keys(obj);
             for (var q = 0; q < keys.length; q++) {
-                observe.setwrite.call(ths,obj, keys[q], obj[keys[q]])
+                observe.setwrite.call(ths, obj, keys[q], obj[keys[q]])
             }
         }
         return obj;
@@ -6565,7 +6591,11 @@
                                 var _b = _a[i].trim();
                                 if ((i + 1) % 2 !== 0) {
                                     r.push(_b.replace(module.regs.cn, function (str) {
-                                        return "." + className + "-" + str.substring(1);
+                                        if (str.substring(1).trim() !== className) {
+                                            return "." + className + "-" + str.substring(1);
+                                        } else {
+                                            return str;
+                                        }
                                     }));
                                 } else {
                                     _b && r.push("{" + _b + "}");
@@ -6595,14 +6625,14 @@
             }
         },
         parseTemplate: function (style, code, className) {
-            if (style&&className) {
+            if (style && className) {
                 return code.replace(module.regs.cnn, function (str) {
-                    var val=str.substring(7, str.length - 1).trim();
+                    var val = str.substring(7, str.length - 1).trim();
                     var a = val.split(" "), r = [];
                     for (var i = 0; i < a.length; i++) {
-                        if(a[i][0]===":"){
+                        if (a[i][0] === ":") {
                             r.push(a[i].substring(1));
-                        }else{
+                        } else {
                             r.push(className + "-" + a[i]);
                         }
                     }
@@ -6773,7 +6803,7 @@
         });
         try {
             a.init();
-            if(a.autodata) {
+            if (a.autodata) {
                 a.observe();
             }
         } catch (e) {
@@ -6926,7 +6956,7 @@
         option: {
             reverse: false
         },
-        autodata:false,
+        autodata: false,
         trigger: function (type, data) {
             var _type = "schange", _data = null;
             if (arguments.length === 0) {
@@ -7068,8 +7098,8 @@
                 }).resolve(task);
             }
         },
-        observe:function(){
-            if(this.autodata) {
+        observe: function () {
+            if (this.autodata) {
                 var ths = this;
                 topolr.observe(this.data, function () {
                     ths.trigger();
@@ -7502,7 +7532,7 @@
         layout: null,
         oninitchild: null,
         oninitchildend: null,
-        option:{},
+        option: {},
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
