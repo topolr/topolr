@@ -5275,7 +5275,7 @@
     var template = function (temp, option) {
         var ops = topolr.extend({
             macro: {},
-            parameters: [],
+            parameters: null,
             autodom: false,
             renderId: null
         }, option);

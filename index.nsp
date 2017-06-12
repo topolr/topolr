@@ -26,12 +26,9 @@
         "d": true,
         "m": {
             "p": {
-                "option.root": "e3db1c0e1e",
-                "test": "0af6b97698",
-                "service.test": "acd1b862d8"
-            },
-            "y": {
-                "style.qq": "2de2c94d72"
+                "option.root": "e654898b8b",
+                "service.test": "e06eb524fd",
+                "test": "41f075807b"
             },
             "t": {
                 "template.temp": "0075821112"
@@ -46,13 +43,10 @@
                 ],
                 "t": [
                     "template.temp"
-                ],
-                "y": [
-                    "style.qq"
                 ]
             }
         },
-        "id": "4f0a77cb68465e3c2c94d39ad5dada26"
+        "id": "924efce7878f3a9921030531bd976256"
     }
 }).boot(true);
     </script>
