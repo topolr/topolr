@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:ea1d3d0d229bd0ae55b3d4b6c302c365
+ * hash:c45200ff8192e3a3a828ccd91335a17e
  */
 (function () {
     "use strict";
@@ -3752,7 +3752,7 @@
             json: "json-text-content-json-s",
             image: "png-nothing-code-image-i",
             text: "html-text-content-text-n",
-            style: "css-text-code-text-y"
+            style: "css-code-css-text-y"
         },
         sourceTypeAlias: {},
         current: {

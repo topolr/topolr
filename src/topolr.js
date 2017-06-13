@@ -3744,7 +3744,7 @@
             json: "json-text-content-json-s",
             image: "png-nothing-code-image-i",
             text: "html-text-content-text-n",
-            style: "css-text-code-text-y"
+            style: "css-code-css-text-y"
         },
         sourceTypeAlias: {},
         current: {
