@@ -1,14 +1,14 @@
 /**
- * version:1.6.2
+ * version:1.6.3
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:c45200ff8192e3a3a828ccd91335a17e
+ * hash:56b314060fd2e7d6ea8abb570afe38e7
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.2"};
+    var topolrInfo = {"version":"1.6.3"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5342,13 +5342,13 @@
             "log": function (str) {
                 return "<%console.log(" + str.join(" ") + ");%>";
             },
-            "map": function (str) {
-                var dataname = str.shift();
+            "map": function (a) {
+                var dataname = a.shift();
                 a.shift();
                 var keyname = a.shift() || "$value";
                 var indexname = a.shift() || "$key";
                 var iname = "_" + util.randomid(8);
-                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];" + indexname + "=" + iname + ";%>";
+                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];var " + indexname + "=" + iname + ";%>";
             },
             "/map": function () {
                 return "<%}%>";

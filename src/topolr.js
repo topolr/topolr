@@ -5334,13 +5334,13 @@
             "log": function (str) {
                 return "<%console.log(" + str.join(" ") + ");%>";
             },
-            "map": function (str) {
-                var dataname = str.shift();
+            "map": function (a) {
+                var dataname = a.shift();
                 a.shift();
                 var keyname = a.shift() || "$value";
                 var indexname = a.shift() || "$key";
                 var iname = "_" + util.randomid(8);
-                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];" + indexname + "=" + iname + ";%>";
+                return "<%for(var " + iname + " in " + dataname + "){ var " + keyname + "=" + dataname + "[" + iname + "];var " + indexname + "=" + iname + ";%>";
             },
             "/map": function () {
                 return "<%}%>";
