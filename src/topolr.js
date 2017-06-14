@@ -6368,7 +6368,7 @@
         regs: {
             a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/,
             cn: /\.[0-9a-zA-Z-]+/g,
-            cnn: /class=['"][\s\S]+?['"]/g,
+            cnn: /class=(["'])(?:(?=(\\?))\2.)*?\1/g,
             d: /\{|\}/
         },
         factory: topolr.adapt(),
