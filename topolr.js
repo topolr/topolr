@@ -1,14 +1,14 @@
 /**
- * version:1.6.3
+ * version:1.6.4
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:56b314060fd2e7d6ea8abb570afe38e7
+ * hash:ed311bff56370b8b97a0076b0b1bf834
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.3"};
+    var topolrInfo = {"version":"1.6.4"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6376,7 +6376,7 @@
         regs: {
             a: /^(dom)|^(option)|^(name)|^(extend)|^(init)/,
             cn: /\.[0-9a-zA-Z-]+/g,
-            cnn: /class=['"][\s\S]+?['"]/g,
+            cnn: /class=(["'])(?:(?=(\\?))\2.)*?\1/g,
             d: /\{|\}/
         },
         factory: topolr.adapt(),
