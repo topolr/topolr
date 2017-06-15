@@ -5717,7 +5717,7 @@
                 }
             } else {
                 if (a.length < b.length) {
-                    if (a[0].props && a[0].props.unique) {
+                    if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
                         var at = template.checkRemove(a, b), bt = [];
                         for (var i = 0, len = at.length; i < len; i++) {
                             bt.push(b[at[i]]);
@@ -5788,7 +5788,7 @@
     };
     template.checkSort = function (a, b) {
         var c = [], r = [];
-        if (a[0].props && a[0].props.unique) {
+        if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
             for (var i = 0, len = a.length; i < len; i++) {
                 c.push(a[i].props.unique);
             }
@@ -5927,7 +5927,7 @@
                 });
             }
             var mt = Array.prototype.slice.call(sorts[0].node.parentNode.childNodes);
-            for (var i = 0; i < sorts.length; i++) {
+            for (var i = 0, len = sorts.length; i < len; i++) {
                 var a = sorts[i], node = a.node, to = a.to;
                 mt[to] = node;
             }
