@@ -5760,6 +5760,14 @@
                                     });
                                     template.diffNode(a[i].children, b[i].children, current, r);
                                 }
+                            } else if (a[i].props["data-view"] !== undefined) {
+                                var ctp = template.checkNode(a[i], b[i]);
+                                if (ctp === "replace") {
+                                    r.replace.push({
+                                        path: current.join(","),
+                                        node: a[i]
+                                    });
+                                }
                             }
                         } else {
                             r.add.push({
@@ -5800,7 +5808,7 @@
         }
         if (r.length > 0) {
             for (var t = 0; t < r.length; t++) {
-                b[r[t].to]=r[t].node;
+                b[r[t].to] = r[t].node;
             }
         }
         return r;
@@ -5904,7 +5912,7 @@
         if (app.option.debug) {
             console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length);
         }
-        if(r.sort.length>0){
+        if (r.sort.length > 0) {
             var sorts = [];
             for (var i = 0; i < r.sort.length; i++) {
                 var t = dom.get(0);
@@ -7839,8 +7847,8 @@
         _updatechild: function (fn) {
             var queue = topolr.queue(), ths = this;
             queue.complete(function (a) {
-                for(var i=0;i<ths.children.length;i++){
-                    if(ths.children[i].dom.isRemoved()){
+                for (var i = 0; i < ths.children.length; i++) {
+                    if (ths.children[i].dom.isRemoved()) {
                         ths.children[i].remove();
                     }
                 }

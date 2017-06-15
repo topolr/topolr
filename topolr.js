@@ -1,14 +1,14 @@
 /**
- * version:1.6.4
+ * version:1.6.5
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:ed311bff56370b8b97a0076b0b1bf834
+ * hash:7322d190d49d8c6d72ec3a1c579ce385
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.4"};
+    var topolrInfo = {"version":"1.6.5"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5709,7 +5709,7 @@
         }
     };
     template.diff = function (newnode, oldnode) {
-        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: []}, current = [];
+        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: [], sort: []}, current = [];
         template.diffNode(newnode, oldnode, current, r);
         oldnode.length = 0;
         return r;
@@ -5740,6 +5740,14 @@
                         lent = b.length;
                     }
                 }
+                var rr = template.checkSort(a, b);
+                for (var n = 0; n < rr.length; n++) {
+                    r.sort.push({
+                        path: current.join(",") + "," + rr[n].from,
+                        to: rr[n].to,
+                        from: rr[n].from
+                    });
+                }
                 for (var i = 0; i < lent; i++) {
                     current.push(i);
                     if (a[i]) {
@@ -5760,6 +5768,14 @@
                                     });
                                     template.diffNode(a[i].children, b[i].children, current, r);
                                 }
+                            } else if (a[i].props["data-view"] !== undefined) {
+                                var ctp = template.checkNode(a[i], b[i]);
+                                if (ctp === "replace") {
+                                    r.replace.push({
+                                        path: current.join(","),
+                                        node: a[i]
+                                    });
+                                }
                             }
                         } else {
                             r.add.push({
@@ -5777,6 +5793,33 @@
                 }
             }
         }
+    };
+    template.checkSort = function (a, b) {
+        var c = [], r = [];
+        if (a[0].props && a[0].props.unique) {
+            for (var i = 0, len = a.length; i < len; i++) {
+                c.push(a[i].props.unique);
+            }
+            for (var i = 0, len = b.length; i < len; i++) {
+                var id = b[i].props.unique;
+                var index = c.indexOf(id);
+                if (index !== -1) {
+                    if (index !== i) {
+                        r.push({
+                            node: b[i],
+                            from: i,
+                            to: index
+                        });
+                    }
+                }
+            }
+        }
+        if (r.length > 0) {
+            for (var t = 0; t < r.length; t++) {
+                b[r[t].to] = r[t].node;
+            }
+        }
+        return r;
     };
     template.checkRemove = function (a, b) {
         var aa = [], r = [];
@@ -5875,8 +5918,35 @@
     };
     template.effect = function (dom, r) {
         if (app.option.debug) {
-            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length);
+            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length);
         }
+        if (r.sort.length > 0) {
+            var sorts = [];
+            for (var i = 0; i < r.sort.length; i++) {
+                var t = dom.get(0);
+                var paths = r.sort[i].path.split(",");
+                for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
+                    t = t.childNodes[paths[tp] / 1];
+                }
+                sorts.push({
+                    node: t,
+                    to: r.sort[i].to,
+                    from: r.sort[i].from
+                });
+            }
+            var mt = Array.prototype.slice.call(sorts[0].node.parentNode.childNodes);
+            for (var i = 0; i < sorts.length; i++) {
+                var a = sorts[i], node = a.node, to = a.to;
+                mt[to] = node;
+            }
+            var parent = mt[0].parentNode;
+            var fragment = document.createDocumentFragment();
+            for (var i = 0; i < mt.length; i++) {
+                fragment.appendChild(mt[i]);
+            }
+            parent.appendChild(fragment);
+        }
+
         var bremoves = [];
         for (var i = 0, len = r.bremove.length; i < len; i++) {
             var t = dom.get(0);
@@ -7785,6 +7855,11 @@
         _updatechild: function (fn) {
             var queue = topolr.queue(), ths = this;
             queue.complete(function (a) {
+                for (var i = 0; i < ths.children.length; i++) {
+                    if (ths.children[i].dom.isRemoved()) {
+                        ths.children[i].remove();
+                    }
+                }
                 fn && fn(a);
             });
             this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
