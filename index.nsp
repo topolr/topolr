@@ -22,23 +22,24 @@
     "title": "sdata",
     "description": "form of topolr",
     "boot": "option.root.test",
+    "debug": true,
     "map": {
         "d": true,
         "m": {
             "p": {
-                "action": "baf5776354",
-                "option.root": "e3db1c0e1e",
-                "service.test": "9ddc16c00d",
-                "test": "3afb113ff1"
+                "action": "4974dd3c3e",
+                "option.root": "d71589df29",
+                "service.test": "7dfa08ba90",
+                "test": "87bc4730b8"
             },
             "c": {
-                "style.icon": "312bbc92d8"
+                "style.icon": "c34b1536de"
             },
             "y": {
                 "style.qq": "2de2c94d72"
             },
             "t": {
-                "template.temp": "4ecd3765f2"
+                "template.temp": "967e11c49c"
             }
         },
         "c": {
@@ -60,7 +61,7 @@
                 ]
             }
         },
-        "id": "4f0a77cb68465e3c2c94d39ad5dada26"
+        "id": "924efce7878f3a9921030531bd976256"
     }
 }).boot(true);
     </script>

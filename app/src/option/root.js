@@ -8,7 +8,7 @@ Option({
         override:{
             onendinit:function () {
                 this.addChild({
-                    type:"@test.test"
+                    type:"@test.test2"
                 });
             }
         }

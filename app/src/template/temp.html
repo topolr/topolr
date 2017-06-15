@@ -11,3 +11,11 @@
     </div>
     {{/list}}
 </div>
+<!--[test2]-->
+<div>
+    {{list data as item}}
+    <div class="item" unique="{{item.id}}" data-bind="click:item" @cache(item)>
+        <div class="name">{{item.name}}</div>
+    </div>
+    {{/list}}
+</div>
