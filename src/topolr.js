@@ -2662,7 +2662,16 @@
     };
     query.prototype.isRemoved = function () {
         if (this.nodes[0]) {
-            return !window.document.contains(this.nodes[0]);
+            var a = this.nodes[0], has = true;
+            while (a) {
+                if (!is.isDocument(a)) {
+                    a = a.parentNode;
+                } else {
+                    has = false;
+                    break;
+                }
+            }
+            return has;
         } else {
             return false;
         }
@@ -5767,6 +5776,11 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
+                                } else if (ctp !== true) {
+                                    r.edit.push({
+                                        path: current.join(","),
+                                        props: ctp
+                                    });
                                 }
                             }
                         } else {
@@ -7223,6 +7237,7 @@
                     this.template = this.dom.html();
                 }
                 var optionName = this.dom.dataset("option"), ths = this;
+                this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
@@ -7607,6 +7622,7 @@
                 this._handlers = {};
                 this.children = [];
                 var ths = this, optionName = this.dom.dataset("option"), queue = topolr.queue();
+                this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
@@ -7846,17 +7862,29 @@
         },
         _updatechild: function (fn) {
             var queue = topolr.queue(), ths = this;
-            queue.complete(function (a) {
-                for (var i = 0; i < ths.children.length; i++) {
-                    if (ths.children[i].dom.isRemoved()) {
-                        ths.children[i].remove();
-                    }
+            var r = [];
+            for (var i = 0; i < ths.children.length; i++) {
+                if (ths.children[i].dom.isRemoved()) {
+                    r.push(ths.children[i]);
                 }
+            }
+            for (var i = 0; i < r.length; i++) {
+                r[i].remove();
+            }
+            queue.complete(function (a) {
                 fn && fn(a);
             });
             this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
                 queue.add(function (aa, dom) {
                     var que = this;
+                    if (dom.getModule()) {
+                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option")) {
+                            dom.getModule().clean();
+                            dom.unbind();
+                            dom.get(0).datasets = {};
+                            dom.empty();
+                        }
+                    }
                     if (!dom.getModule()) {
                         var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
                         module.get(subview, null, function (k) {

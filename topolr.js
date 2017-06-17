@@ -1,14 +1,14 @@
 /**
- * version:1.6.5
+ * version:1.6.6
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:7322d190d49d8c6d72ec3a1c579ce385
+ * hash:ddd4e495c244092725bc6f20bf8ccecb
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.5"};
+    var topolrInfo = {"version":"1.6.6"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -2670,7 +2670,16 @@
     };
     query.prototype.isRemoved = function () {
         if (this.nodes[0]) {
-            return !window.document.contains(this.nodes[0]);
+            var a = this.nodes[0], has = true;
+            while (a) {
+                if (!is.isDocument(a)) {
+                    a = a.parentNode;
+                } else {
+                    has = false;
+                    break;
+                }
+            }
+            return has;
         } else {
             return false;
         }
@@ -5725,7 +5734,7 @@
                 }
             } else {
                 if (a.length < b.length) {
-                    if (a[0].props && a[0].props.unique) {
+                    if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
                         var at = template.checkRemove(a, b), bt = [];
                         for (var i = 0, len = at.length; i < len; i++) {
                             bt.push(b[at[i]]);
@@ -5775,6 +5784,11 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
+                                } else if (ctp !== true) {
+                                    r.edit.push({
+                                        path: current.join(","),
+                                        props: ctp
+                                    });
                                 }
                             }
                         } else {
@@ -5796,7 +5810,7 @@
     };
     template.checkSort = function (a, b) {
         var c = [], r = [];
-        if (a[0].props && a[0].props.unique) {
+        if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
             for (var i = 0, len = a.length; i < len; i++) {
                 c.push(a[i].props.unique);
             }
@@ -5935,7 +5949,7 @@
                 });
             }
             var mt = Array.prototype.slice.call(sorts[0].node.parentNode.childNodes);
-            for (var i = 0; i < sorts.length; i++) {
+            for (var i = 0, len = sorts.length; i < len; i++) {
                 var a = sorts[i], node = a.node, to = a.to;
                 mt[to] = node;
             }
@@ -7231,6 +7245,7 @@
                     this.template = this.dom.html();
                 }
                 var optionName = this.dom.dataset("option"), ths = this;
+                this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
@@ -7615,6 +7630,7 @@
                 this._handlers = {};
                 this.children = [];
                 var ths = this, optionName = this.dom.dataset("option"), queue = topolr.queue();
+                this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
                     this.dom.removeClass("_futuretochange_");
                     var prps = module.factory._mapping[this.type()].prototype;
@@ -7854,17 +7870,29 @@
         },
         _updatechild: function (fn) {
             var queue = topolr.queue(), ths = this;
-            queue.complete(function (a) {
-                for (var i = 0; i < ths.children.length; i++) {
-                    if (ths.children[i].dom.isRemoved()) {
-                        ths.children[i].remove();
-                    }
+            var r = [];
+            for (var i = 0; i < ths.children.length; i++) {
+                if (ths.children[i].dom.isRemoved()) {
+                    r.push(ths.children[i]);
                 }
+            }
+            for (var i = 0; i < r.length; i++) {
+                r[i].remove();
+            }
+            queue.complete(function (a) {
                 fn && fn(a);
             });
             this.dom.find("*[data-parent-view='" + this.getId() + "']").each(function () {
                 queue.add(function (aa, dom) {
                     var que = this;
+                    if (dom.getModule()) {
+                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option")) {
+                            dom.getModule().clean();
+                            dom.unbind();
+                            dom.get(0).datasets = {};
+                            dom.empty();
+                        }
+                    }
                     if (!dom.getModule()) {
                         var ops = {}, subview = dom.dataset("view"), subid = dom.dataset("viewId");
                         module.get(subview, null, function (k) {
