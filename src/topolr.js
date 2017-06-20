@@ -6681,7 +6681,7 @@
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === stylename) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName&&b[i].dataset.perfix === className) {
                                 has = true;
                             }
                         }
@@ -6689,7 +6689,7 @@
                             var _a = document.createElement("style");
                             _a.setAttribute("media", "screen");
                             _a.setAttribute("type", "text/css");
-                            _a.setAttribute("data-packet", stylename);
+                            _a.setAttribute("data-packet", styleName);
                             _a.setAttribute("data-perfix", className);
                             _a.appendChild(document.createTextNode(str));
                             document.getElementsByTagName("head")[0].appendChild(_a);
