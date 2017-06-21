@@ -1,14 +1,14 @@
 /**
- * version:1.6.8
+ * version:1.6.9
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:5f9bd2d68845e23a60d27645d6de8248
+ * hash:d1c348f1b6b6df4e9a7de89e9c638cd7
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.8"};
+    var topolrInfo = {"version":"1.6.9"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6314,6 +6314,7 @@
             autodom: this._autodom,
             renderId: this._renderId
         });
+        $.extend(this._propshookinfo,p._propshookinfo);
         var t = p.render.apply(p, tp);
         for (var i in p._caching) {
             this._caching[i] = p._caching[i];
@@ -6594,6 +6595,7 @@
             return topolr.is.isString(str) && str.indexOf("<") === -1 && str.indexOf(".") !== -1;
         },
         agentEvent: function (moduleobj, props) {
+            moduleobj.dom.unbind();
             for (var i in props) {
                 if (event.util.canBubbleUp(i)) {
                     moduleobj.dom.bind(i, module.agentHandler);
@@ -7428,10 +7430,10 @@
                             parameters: ["data"],
                             renderId: ths.getShortUUID()
                         });
-                        module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
                     ths.tempt.renderTo.apply(ths.tempt, n);
+                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                 }
             } catch (e) {
                 console.error("[topolr] render called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7451,6 +7453,7 @@
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
                     this.autodomc.update(Array.prototype.slice.call(arguments));
+                    module.agentEvent(this, this.autodomc.getPropsHookInfo());
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -7727,8 +7730,8 @@
                                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
                                     ths.tempt = tempt;
-                                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
+                                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                                 }
                             } catch (e) {
                                 console.error("[topolr] parse layout called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7957,6 +7960,7 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
+                module.agentEvent(this, this.autodomc.getPropsHookInfo());
             }
         },
         getChildrenByType: function (type) {

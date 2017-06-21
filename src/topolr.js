@@ -6306,6 +6306,7 @@
             autodom: this._autodom,
             renderId: this._renderId
         });
+        $.extend(this._propshookinfo,p._propshookinfo);
         var t = p.render.apply(p, tp);
         for (var i in p._caching) {
             this._caching[i] = p._caching[i];
@@ -6586,6 +6587,7 @@
             return topolr.is.isString(str) && str.indexOf("<") === -1 && str.indexOf(".") !== -1;
         },
         agentEvent: function (moduleobj, props) {
+            moduleobj.dom.unbind();
             for (var i in props) {
                 if (event.util.canBubbleUp(i)) {
                     moduleobj.dom.bind(i, module.agentHandler);
@@ -7420,10 +7422,10 @@
                             parameters: ["data"],
                             renderId: ths.getShortUUID()
                         });
-                        module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                     }
                     n.unshift(ths.dom);
                     ths.tempt.renderTo.apply(ths.tempt, n);
+                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                 }
             } catch (e) {
                 console.error("[topolr] render called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7443,6 +7445,7 @@
             if (this._rendered === true) {
                 if (this.autodom && this.autodomc) {
                     this.autodomc.update(Array.prototype.slice.call(arguments));
+                    module.agentEvent(this, this.autodomc.getPropsHookInfo());
                 }
             } else {
                 this.render.apply(this, Array.prototype.slice.call(arguments));
@@ -7719,8 +7722,8 @@
                                     module.agentEvent(ths, ths.autodomc.getPropsHookInfo());
                                 } else {
                                     ths.tempt = tempt;
-                                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                                     tempt.renderTo(ths.dom, ths.option, ths.getId(), ths.option);
+                                    module.agentEvent(ths, ths.tempt.getPropsHookInfo());
                                 }
                             } catch (e) {
                                 console.error("[topolr] parse layout called error with module of " + ths.type() + " Message:" + e.stack);
@@ -7949,6 +7952,7 @@
         update: function (data) {
             if (this.autodom && this.autodomc) {
                 this.autodomc.update([data || this.option, this.getId(), this.option]);
+                module.agentEvent(this, this.autodomc.getPropsHookInfo());
             }
         },
         getChildrenByType: function (type) {
