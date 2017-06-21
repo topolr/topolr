@@ -6300,7 +6300,12 @@
         for (var i = 0; i < ed.length; i++) {
             tp[i] = ed[i];
         }
-        var p = new template(temp, this._macrofn, this._parameters);
+        var p = new template(temp, {
+            macro: this._macrofn,
+            parameters: this._parameters,
+            autodom: this._autodom,
+            renderId: this._renderId
+        });
         var t = p.render.apply(p, tp);
         for (var i in p._caching) {
             this._caching[i] = p._caching[i];
@@ -6681,7 +6686,7 @@
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === styleName&&b[i].dataset.perfix === className) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === className) {
                                 has = true;
                             }
                         }

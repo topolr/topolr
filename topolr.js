@@ -1,14 +1,14 @@
 /**
- * version:1.6.7
+ * version:1.6.8
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:78b9e63aae903f21ec874eb2fd703857
+ * hash:5f9bd2d68845e23a60d27645d6de8248
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.7"};
+    var topolrInfo = {"version":"1.6.8"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6308,7 +6308,12 @@
         for (var i = 0; i < ed.length; i++) {
             tp[i] = ed[i];
         }
-        var p = new template(temp, this._macrofn, this._parameters);
+        var p = new template(temp, {
+            macro: this._macrofn,
+            parameters: this._parameters,
+            autodom: this._autodom,
+            renderId: this._renderId
+        });
         var t = p.render.apply(p, tp);
         for (var i in p._caching) {
             this._caching[i] = p._caching[i];
@@ -6689,7 +6694,7 @@
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === styleName&&b[i].dataset.perfix === className) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === className) {
                                 has = true;
                             }
                         }
