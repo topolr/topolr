@@ -1,14 +1,14 @@
 /**
- * version:1.6.11
+ * version:1.6.12
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:dfe29c8974bbdc010904b2d3e3f29014
+ * hash:7339d3ef255c7849b093857b494e4397
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.11"};
+    var topolrInfo = {"version":"1.6.12"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5718,7 +5718,7 @@
         }
     };
     template.diff = function (newnode, oldnode) {
-        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: [], sort: [], empty: []},
+        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: [], sort: []},
             current = [];
         template.diffNode(newnode, oldnode, current, r);
         oldnode.length = 0;
@@ -5787,7 +5787,6 @@
                                 }
                             } else if (a[i].props["data-view"] !== undefined) {
                                 var ctp = template.checkNode(a[i], b[i]);
-
                                 if (ctp === "replace") {
                                     r.replace.push({
                                         path: current.join(","),
@@ -5941,7 +5940,7 @@
     };
     template.effect = function (dom, r) {
         if (app.option.debug) {
-            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length + " Empty:" + r.empty.length);
+            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length);
         }
         if (r.sort.length > 0) {
             var sorts = [];
@@ -6075,14 +6074,6 @@
             if (t) {
                 t.innerHTML = "";
             }
-        }
-        for (var i = 0, len = r.empty.length; i < len; i++) {
-            var t = dom.get(0);
-            var paths = r.empty[i].path.split(",");
-            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
-                t = t.childNodes[paths[tp] / 1];
-            }
-            t.innerHTML = "";
         }
         for (var i in adds) {
             if (adds[i].length > 0) {
