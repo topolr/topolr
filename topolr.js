@@ -1,14 +1,14 @@
 /**
- * version:1.6.9
+ * version:1.6.10
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:d1c348f1b6b6df4e9a7de89e9c638cd7
+ * hash:d779ab1fa8b44dac1389ff7cf26817b4
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.9"};
+    var topolrInfo = {"version":"1.6.10"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5718,7 +5718,8 @@
         }
     };
     template.diff = function (newnode, oldnode) {
-        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: [], sort: []}, current = [];
+        var r = {add: [], replace: [], remove: [], edit: [], removeAll: [], bremove: [], sort: [], empty: []},
+            current = [];
         template.diffNode(newnode, oldnode, current, r);
         oldnode.length = 0;
         return r;
@@ -5763,6 +5764,11 @@
                         if (b[i]) {
                             if (!(a[i].props && a[i].props["data-view"] !== undefined)) {
                                 var ctp = template.checkNode(a[i], b[i]);
+                                if (b[i].props && b[i].props["data-view"] !== undefined) {
+                                    r.empty.push({
+                                        path: current.join(",")
+                                    });
+                                }
                                 if (ctp === true) {
                                     template.diffNode(a[i].children, b[i].children, current, r);
                                 } else if (ctp === "replace") {
@@ -5784,10 +5790,16 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
+                                    r.empty.push({
+                                        path: current.join(",")
+                                    });
                                 } else if (ctp !== true) {
                                     r.edit.push({
                                         path: current.join(","),
                                         props: ctp
+                                    });
+                                    r.empty.push({
+                                        path: current.join(",")
                                     });
                                 }
                             }
@@ -5932,7 +5944,7 @@
     };
     template.effect = function (dom, r) {
         if (app.option.debug) {
-            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length);
+            console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length + " Empty:" + r.empty.length);
         }
         if (r.sort.length > 0) {
             var sorts = [];
@@ -6066,6 +6078,14 @@
             if (t) {
                 t.innerHTML = "";
             }
+        }
+        for (var i = 0, len = r.empty.length; i < len; i++) {
+            var t = dom.get(0);
+            var paths = r.empty[i].path.split(",");
+            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
+                t = t.childNodes[paths[tp] / 1];
+            }
+            t.innerHTML = "";
         }
         for (var i in adds) {
             if (adds[i].length > 0) {
@@ -6314,7 +6334,7 @@
             autodom: this._autodom,
             renderId: this._renderId
         });
-        $.extend(this._propshookinfo,p._propshookinfo);
+        $.extend(this._propshookinfo, p._propshookinfo);
         var t = p.render.apply(p, tp);
         for (var i in p._caching) {
             this._caching[i] = p._caching[i];
@@ -7894,7 +7914,7 @@
                 queue.add(function (aa, dom) {
                     var que = this;
                     if (dom.getModule()) {
-                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option")) {
+                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option") || dom.html().trim() === "") {
                             dom.getModule().clean();
                             dom.unbind();
                             dom.get(0).datasets = {};
