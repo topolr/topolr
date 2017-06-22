@@ -5757,41 +5757,38 @@
                             if (!(a[i].props && a[i].props["data-view"] !== undefined)) {
                                 var ctp = template.checkNode(a[i], b[i]);
                                 if (b[i].props && b[i].props["data-view"] !== undefined) {
-                                    r.empty.push({
-                                        path: current.join(",")
-                                    });
-                                }
-                                if (ctp === true) {
-                                    template.diffNode(a[i].children, b[i].children, current, r);
-                                } else if (ctp === "replace") {
                                     r.replace.push({
                                         path: current.join(","),
                                         node: a[i]
                                     });
-                                } else {
-                                    r.edit.push({
-                                        path: current.join(","),
-                                        props: ctp
-                                    });
-                                    template.diffNode(a[i].children, b[i].children, current, r);
+                                }else {
+                                    if (ctp === true) {
+                                        template.diffNode(a[i].children, b[i].children, current, r);
+                                    } else if (ctp === "replace") {
+                                        r.replace.push({
+                                            path: current.join(","),
+                                            node: a[i]
+                                        });
+                                    } else {
+                                        r.edit.push({
+                                            path: current.join(","),
+                                            props: ctp
+                                        });
+                                        template.diffNode(a[i].children, b[i].children, current, r);
+                                    }
                                 }
                             } else if (a[i].props["data-view"] !== undefined) {
                                 var ctp = template.checkNode(a[i], b[i]);
+
                                 if (ctp === "replace") {
                                     r.replace.push({
                                         path: current.join(","),
                                         node: a[i]
                                     });
-                                    r.empty.push({
-                                        path: current.join(",")
-                                    });
                                 } else if (ctp !== true) {
                                     r.edit.push({
                                         path: current.join(","),
                                         props: ctp
-                                    });
-                                    r.empty.push({
-                                        path: current.join(",")
                                     });
                                 }
                             }
@@ -7906,7 +7903,7 @@
                 queue.add(function (aa, dom) {
                     var que = this;
                     if (dom.getModule()) {
-                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option") || dom.html().trim() === "") {
+                        if (dom.getModule().type() !== dom.dataset("view") || dom.getModule().optionName !== dom.dataset("option")) {
                             dom.getModule().clean();
                             dom.unbind();
                             dom.get(0).datasets = {};

@@ -68,14 +68,10 @@ Module({
     extend:"viewgroup",
     autodom:true,
     layout:"<div data-bind='click:change'>"+
-            "<div>"+
                 "{{if data.check}}"+
-                "<div>sdsdsd</div>"+
+                "<div>666666</div>"+
                 "{{/if}}"+
-            "</div>"+
-            "<div>"+
                 "<@module type='{{data.type}}'/>"+
-            "</div>"+
             "</div>",
     option:{
         type:"@.aa",
