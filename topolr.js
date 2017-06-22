@@ -1,14 +1,14 @@
 /**
- * version:1.6.12
+ * version:1.6.13
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:7339d3ef255c7849b093857b494e4397
+ * hash:c0fed4f2e2df3b1dd16b0518a34a05e9
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.12"};
+    var topolrInfo = {"version":"1.6.13"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6704,7 +6704,7 @@
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === className) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === (className||"<none>")) {
                                 has = true;
                             }
                         }
@@ -6713,7 +6713,7 @@
                             _a.setAttribute("media", "screen");
                             _a.setAttribute("type", "text/css");
                             _a.setAttribute("data-packet", styleName);
-                            _a.setAttribute("data-perfix", className);
+                            _a.setAttribute("data-perfix", className||"<none>");
                             _a.appendChild(document.createTextNode(str));
                             document.getElementsByTagName("head")[0].appendChild(_a);
                         }
