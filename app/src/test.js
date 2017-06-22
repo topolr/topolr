@@ -51,3 +51,15 @@ Module({
         this.update(this.data);
     }
 });
+Module({
+    name:"aa",
+    extend:"view",
+    autodom:true,
+    template:"<div>{{data.desc}}</div>",
+    option:{
+        desc:""
+    },
+    init:function(){
+        this.render(this.option);
+    }
+});
