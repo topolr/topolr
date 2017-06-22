@@ -5782,15 +5782,15 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
+                                    r.empty.push({
+                                        path: current.join(",")
+                                    });
                                 } else if (ctp !== true) {
                                     r.edit.push({
                                         path: current.join(","),
                                         props: ctp
                                     });
                                 }
-                                r.empty.push({
-                                    path: current.join(",")
-                                });
                             }
                         } else {
                             r.add.push({
@@ -5933,7 +5933,6 @@
     };
     template.effect = function (dom, r) {
         if (app.option.debug) {
-            console.log(r.empty)
             console.log("Add:" + r.add.length + " Replace:" + r.replace.length + " Remove:" + r.remove.length + " Edit:" + r.edit.length + " removeAll:" + r.removeAll.length + " Bremove:" + r.bremove.length + " Sort:" + r.sort.length + " Empty:" + r.empty.length);
         }
         if (r.sort.length > 0) {

@@ -68,9 +68,11 @@ Module({
     extend:"viewgroup",
     autodom:true,
     layout:"<div data-bind='click:change'>"+
-            "{{if data.check}}"+
-            "<div>sdsdsd</div>"+
-            "{{/if}}"+
+            "<div>"+
+                "{{if data.check}}"+
+                "<div>sdsdsd</div>"+
+                "{{/if}}"+
+            "</div>"+
             "<@module type='{{data.type}}'/>"+
             "</div>",
     option:{
@@ -80,5 +82,8 @@ Module({
     bind_change:function () {
         this.option.check=this.option.check?false:true;
         this.update(this.option);
+    },
+    oninitchildend:function (module) {
+        console.log("------->"+module.type());
     }
 });
