@@ -57,9 +57,28 @@ Module({
     autodom:true,
     template:"<div>{{data.desc}}</div>",
     option:{
-        desc:""
+        desc:"aaaa"
     },
     init:function(){
         this.render(this.option);
+    }
+});
+Module({
+    name:"bb",
+    extend:"viewgroup",
+    autodom:true,
+    layout:"<div data-bind='click:change'>"+
+            "{{if data.check}}"+
+            "<div>sdsdsd</div>"+
+            "{{/if}}"+
+            "<@module type='{{data.type}}'/>"+
+            "</div>",
+    option:{
+        type:"@.aa",
+        check:true
+    },
+    bind_change:function () {
+        this.option.check=this.option.check?false:true;
+        this.update(this.option);
     }
 });
