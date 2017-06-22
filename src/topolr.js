@@ -5790,6 +5790,9 @@
                                         path: current.join(","),
                                         props: ctp
                                     });
+                                    r.empty.push({
+                                        path: current.join(",")
+                                    });
                                 }
                             }
                         } else {
@@ -5962,14 +5965,6 @@
             parent.appendChild(fragment);
         }
 
-        for (var i = 0, len = r.empty.length; i < len; i++) {
-            var t = dom.get(0);
-            var paths = r.empty[i].path.split(",");
-            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
-                t = t.childNodes[paths[tp] / 1];
-            }
-            t.innerHTML = "";
-        }
         var bremoves = [];
         for (var i = 0, len = r.bremove.length; i < len; i++) {
             var t = dom.get(0);
@@ -6075,6 +6070,14 @@
             if (t) {
                 t.innerHTML = "";
             }
+        }
+        for (var i = 0, len = r.empty.length; i < len; i++) {
+            var t = dom.get(0);
+            var paths = r.empty[i].path.split(",");
+            for (var tp = 0, lenp = paths.length; tp < lenp; tp++) {
+                t = t.childNodes[paths[tp] / 1];
+            }
+            t.innerHTML = "";
         }
         for (var i in adds) {
             if (adds[i].length > 0) {

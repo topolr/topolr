@@ -73,7 +73,9 @@ Module({
                 "<div>sdsdsd</div>"+
                 "{{/if}}"+
             "</div>"+
-            "<@module type='{{data.type}}'/>"+
+            "<div>"+
+                "<@module type='{{data.type}}'/>"+
+            "</div>"+
             "</div>",
     option:{
         type:"@.aa",
