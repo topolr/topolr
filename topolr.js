@@ -1,14 +1,14 @@
 /**
- * version:1.6.13
+ * version:1.6.14
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:c0fed4f2e2df3b1dd16b0518a34a05e9
+ * hash:1a3d26d486884c2bd10850884ffa4af9
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.13"};
+    var topolrInfo = {"version":"1.6.14"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -7468,22 +7468,14 @@
             }
         },
         original: function (methods) {
-            var target = this, t = 0;
-            while (target.constructor !== Object && t < 2) {
-                if (target[methods]) {
-                    t++;
-                }
-                target = Object.getPrototypeOf(target);
-            }
-            if (t === 2) {
-                var a = target[methods];
-                if (topolr.is.isFunction(a)) {
-                    var b = Array.prototype.slice.call(arguments);
-                    b.splice(0, 1);
-                    return a.apply(this, b);
-                } else {
-                    return topolr.extend(true, {}, a);
-                }
+            var target=Object.getPrototypeOf(this);
+            var a = target[methods];
+            if (topolr.is.isFunction(a)) {
+                var b = Array.prototype.slice.call(arguments);
+                b.splice(0, 1);
+                return a.apply(this, b);
+            } else {
+                return topolr.extend(true, {}, a);
             }
         },
         parentsInvoke: function (methodName) {

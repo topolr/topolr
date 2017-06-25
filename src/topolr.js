@@ -7460,22 +7460,14 @@
             }
         },
         original: function (methods) {
-            var target = this, t = 0;
-            while (target.constructor !== Object && t < 2) {
-                if (target[methods]) {
-                    t++;
-                }
-                target = Object.getPrototypeOf(target);
-            }
-            if (t === 2) {
-                var a = target[methods];
-                if (topolr.is.isFunction(a)) {
-                    var b = Array.prototype.slice.call(arguments);
-                    b.splice(0, 1);
-                    return a.apply(this, b);
-                } else {
-                    return topolr.extend(true, {}, a);
-                }
+            var target=Object.getPrototypeOf(this);
+            var a = target[methods];
+            if (topolr.is.isFunction(a)) {
+                var b = Array.prototype.slice.call(arguments);
+                b.splice(0, 1);
+                return a.apply(this, b);
+            } else {
+                return topolr.extend(true, {}, a);
             }
         },
         parentsInvoke: function (methodName) {
