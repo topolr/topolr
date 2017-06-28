@@ -1,14 +1,14 @@
 /**
- * version:1.6.14
+ * version:1.6.15
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:1a3d26d486884c2bd10850884ffa4af9
+ * hash:54fdfe1ce179726931ca7c68755c5fd6
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.14"};
+    var topolrInfo = {"version":"1.6.15"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6676,14 +6676,9 @@
                 }
                 for (var m = 0; m < all.length; m++) {
                     var stylename = all[m];
-                    var mt = packet.packetsmapping[packetName].style, cdt = null;
-                    for (var i = 0; i < mt.length; i++) {
-                        if (mt[i].packet === stylename) {
-                            cdt = mt[i];
-                        }
-                    }
+                    var cdt = module.getLoadedStyle(styleName);
                     if (cdt) {
-                        var code = cdt.value.code, str = code;
+                        var code = cdt, str = code;
                         if (className) {
                             var _a = code.split(module.regs.d), r = [];
                             for (var i = 0; i < _a.length; i++) {
@@ -6741,6 +6736,33 @@
             } else {
                 return code;
             }
+        },
+        getLoadedTemplate:function(tempId){
+            var a = tempId.split("."), _name = a.pop(), _packet = a.join(".");
+            var r="";
+            for(var i in packet.packetsmapping){
+                var b=packet.packetsmapping[i];
+                for(var j=0;j<b.template.length;j++){
+                    if(b.template[j].packet===_packet){
+                        r=b.template[j].value[_name];
+                        break;
+                    }
+                }
+            }
+            return r;
+        },
+        getLoadedStyle:function(styleId){
+            var r="";
+            for(var i in packet.packetsmapping){
+                var b=packet.packetsmapping[i];
+                for(var j=0;j<b.style.length;j++){
+                    if(b.style[j].packet===styleId){
+                        r=b.style[j].value.code;
+                        break;
+                    }
+                }
+            }
+            return r;
         }
     };
     var option = {
@@ -7250,8 +7272,7 @@
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
                 if (module.isPacketName(this.template)) {
-                    var a = this.template.split("."), _name = a.pop(), _packet = a.join(".");
-                    this.template = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
+                    this.template=module.getLoadedTemplate(this.template);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.template = module.parseTemplate(this.style, this.template, this.className);
@@ -7630,8 +7651,7 @@
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
                 if (module.isPacketName(this.layout)) {
-                    var a = this.layout.split("."), _name = a.pop(), _packet = a.join(".");
-                    this.layout = packet.packetsmapping[this.packet()].getTemplate(_packet, _name);
+                    this.layout = module.getLoadedTemplate(this.layout);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.dom.data("--view--", this);
