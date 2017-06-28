@@ -1,6 +1,6 @@
 {
   "name": "topolr",
-  "version": "1.6.15",
+  "version": "1.6.16",
   "description": "topolr frontend base library",
   "main": "main.js",
   "scripts": {

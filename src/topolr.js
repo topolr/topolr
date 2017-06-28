@@ -5382,7 +5382,7 @@
                 return "<%break;%>";
             },
             "set": function (str) {
-                return "<%var " + str.join(" ") + "%>";
+                return "<%var " + str + ";%>";
             }
         },
         parse: function (strs) {
