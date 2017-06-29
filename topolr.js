@@ -1,14 +1,14 @@
 /**
- * version:1.6.16
+ * version:1.6.15
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:c1f1ef56ac0e47194e76717323529a55
+ * hash:54fdfe1ce179726931ca7c68755c5fd6
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.16"};
+    var topolrInfo = {"version":"1.6.15"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5415,7 +5415,7 @@
         var r = str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
-            return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
+            return "data-group='<%=this._prophook(\"" + ("g:"+str.substring(12, str.length - 1)) + "\");%>'";
         }).replace(template.regs.db, function (str) {
             var val = str.substring(11, str.length - 1);
             var vals = val.split(" ");

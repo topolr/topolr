@@ -5407,7 +5407,7 @@
         var r = str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
-            return "data-group='<%=this._prophook(\"g:" + str.substring(11, str.length - 1) + "\");%>'";
+            return "data-group='<%=this._prophook(\"" + ("g:"+str.substring(12, str.length - 1)) + "\");%>'";
         }).replace(template.regs.db, function (str) {
             var val = str.substring(11, str.length - 1);
             var vals = val.split(" ");
