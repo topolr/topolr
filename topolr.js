@@ -1,14 +1,14 @@
 /**
- * version:1.6.15
+ * version:1.6.19
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:54fdfe1ce179726931ca7c68755c5fd6
+ * hash:4bfc3d0b4d22b0a90dec47072d749b1e
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.15"};
+    var topolrInfo = {"version":"1.6.19"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5415,7 +5415,7 @@
         var r = str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
-            return "data-group='<%=this._prophook(\"" + ("g:"+str.substring(12, str.length - 1)) + "\");%>'";
+            return "data-group='<%=this._prophook(\"" + ("g:" + str.substring(12, str.length - 1)) + "\");%>'";
         }).replace(template.regs.db, function (str) {
             var val = str.substring(11, str.length - 1);
             var vals = val.split(" ");
@@ -5769,7 +5769,7 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
-                                }else {
+                                } else {
                                     if (ctp === true) {
                                         template.diffNode(a[i].children, b[i].children, current, r);
                                     } else if (ctp === "replace") {
@@ -6047,7 +6047,10 @@
             for (var tp in props.final) {
                 if (t.getAttribute(tp) !== props.final[tp]) {
                     t.setAttribute(tp, props.final[tp]);
-                    t[tp] = props.final[tp];
+                    try {
+                        t[tp] = props.final[tp];
+                    } catch (e) {
+                    }
                 }
                 var etm = attributes.indexOf(tp);
                 if (etm !== -1) {
@@ -6699,7 +6702,7 @@
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === (className||"<none>")) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === (className || "<none>")) {
                                 has = true;
                             }
                         }
@@ -6708,7 +6711,7 @@
                             _a.setAttribute("media", "screen");
                             _a.setAttribute("type", "text/css");
                             _a.setAttribute("data-packet", styleName);
-                            _a.setAttribute("data-perfix", className||"<none>");
+                            _a.setAttribute("data-perfix", className || "<none>");
                             _a.appendChild(document.createTextNode(str));
                             document.getElementsByTagName("head")[0].appendChild(_a);
                         }
@@ -6737,27 +6740,27 @@
                 return code;
             }
         },
-        getLoadedTemplate:function(tempId){
+        getLoadedTemplate: function (tempId) {
             var a = tempId.split("."), _name = a.pop(), _packet = a.join(".");
-            var r="";
-            for(var i in packet.packetsmapping){
-                var b=packet.packetsmapping[i];
-                for(var j=0;j<b.template.length;j++){
-                    if(b.template[j].packet===_packet){
-                        r=b.template[j].value[_name];
+            var r = "";
+            for (var i in packet.packetsmapping) {
+                var b = packet.packetsmapping[i];
+                for (var j = 0; j < b.template.length; j++) {
+                    if (b.template[j].packet === _packet) {
+                        r = b.template[j].value[_name];
                         break;
                     }
                 }
             }
             return r;
         },
-        getLoadedStyle:function(styleId){
-            var r="";
-            for(var i in packet.packetsmapping){
-                var b=packet.packetsmapping[i];
-                for(var j=0;j<b.style.length;j++){
-                    if(b.style[j].packet===styleId){
-                        r=b.style[j].value.code;
+        getLoadedStyle: function (styleId) {
+            var r = "";
+            for (var i in packet.packetsmapping) {
+                var b = packet.packetsmapping[i];
+                for (var j = 0; j < b.style.length; j++) {
+                    if (b.style[j].packet === styleId) {
+                        r = b.style[j].value.code;
                         break;
                     }
                 }
@@ -7272,7 +7275,7 @@
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
                 if (module.isPacketName(this.template)) {
-                    this.template=module.getLoadedTemplate(this.template);
+                    this.template = module.getLoadedTemplate(this.template);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.template = module.parseTemplate(this.style, this.template, this.className);
@@ -7489,7 +7492,7 @@
             }
         },
         original: function (methods) {
-            var target=Object.getPrototypeOf(this);
+            var target = Object.getPrototypeOf(this);
             var a = target[methods];
             if (topolr.is.isFunction(a)) {
                 var b = Array.prototype.slice.call(arguments);
