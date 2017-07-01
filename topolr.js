@@ -1,14 +1,14 @@
 /**
- * version:1.6.19
+ * version:1.6.20
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:4bfc3d0b4d22b0a90dec47072d749b1e
+ * hash:50c76ee398f0363be89099b8f27adf47
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.6.19"};
+    var topolrInfo = {"version":"1.6.20"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -6683,22 +6683,45 @@
                     if (cdt) {
                         var code = cdt, str = code;
                         if (className) {
-                            var _a = code.split(module.regs.d), r = [];
+                            var _a = code.split(module.regs.d);
+                            var _r = [], _t = [];
                             for (var i = 0; i < _a.length; i++) {
                                 var _b = _a[i].trim();
-                                if ((i + 1) % 2 !== 0) {
-                                    r.push(_b.replace(module.regs.cn, function (str) {
-                                        if (str.substring(1).trim() !== className) {
-                                            return "." + className + "-" + str.substring(1);
-                                        } else {
-                                            return str;
-                                        }
-                                    }));
+                                if (_b.indexOf("@media") !== -1) {
+                                    _t.push([].concat(_r));
+                                    _r = [];
+                                }
+                                _r.push(_b);
+                            }
+                            _t.push(_r);
+                            var str = "";
+                            for (var k = 0; k < _t.length; k++) {
+                                var _a = _t[k], _has = false, r = [];
+                                if (_a[0].indexOf("@media") !== -1) {
+                                    _has = true;
+                                    str += _a[0] + "{";
+                                    _a.shift();
+                                }
+                                for (var i = 0; i < _a.length; i++) {
+                                    var _b = _a[i].trim();
+                                    if ((i + 1) % 2 !== 0) {
+                                        r.push(_b.replace(module.regs.cn, function (str) {
+                                            if (str.substring(1).trim() !== className) {
+                                                return "." + className + "-" + str.substring(1);
+                                            } else {
+                                                return str;
+                                            }
+                                        }));
+                                    } else {
+                                        _b && r.push("{" + _b + "}");
+                                    }
+                                }
+                                if (_has) {
+                                    str += r.join("") + "}"
                                 } else {
-                                    _b && r.push("{" + _b + "}");
+                                    str += r.join("");
                                 }
                             }
-                            str = r.join("");
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
