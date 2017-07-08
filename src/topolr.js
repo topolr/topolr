@@ -6037,20 +6037,40 @@
                 }
             }
             for (var tp in props.final) {
-                if (t.getAttribute(tp) !== props.final[tp]) {
-                    t.setAttribute(tp, props.final[tp]);
-                    try {
-                        t[tp] = props.final[tp];
-                    } catch (e) {
+                if (tp.indexOf(":") === -1) {
+                    if (t.getAttribute(tp) !== props.final[tp]) {
+                        t.setAttribute(tp, props.final[tp]);
+                        try {
+                            t[tp] = props.final[tp];
+                        } catch (e) {
+                        }
                     }
-                }
-                var etm = attributes.indexOf(tp);
-                if (etm !== -1) {
-                    attributes.splice(etm, 1);
+                    var etm = attributes.indexOf(tp);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
+                } else {
+                    var to = tp.split(":"), top = to[1], stop = to[0];
+                    if (t.getAttributeNS("http://www.w3.org/1999/" + stop, top) !== props.final[tp]) {
+                        t.setAttributeNS("http://www.w3.org/1999/" + stop, top, props.final[tp]);
+                    }
+                    var etm = attributes.indexOf(top);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
+                    etm = attributes.indexOf(tp);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
                 }
             }
             for (var tp = 0; tp < attributes.length; tp++) {
-                t.removeAttribute(attributes[tp]);
+                if (attributes[tp].indexOf(":") === -1) {
+                    t.removeAttribute(attributes[tp]);
+                } else {
+                    var to = attributes[tp].split(":"), top = to[1], stop = to[0];
+                    t.removeAttributeNS("http://www.w3.org/1999/" + stop, top, props.final[tp]);
+                }
             }
         }
         for (var i = 0, len = removes.length; i < len; i++) {
