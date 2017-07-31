@@ -5785,6 +5785,9 @@
                                         node: a[i]
                                     });
                                 } else if (ctp !== true) {
+                                    r.removeAll.push({
+                                        path: current.join(",")
+                                    });
                                     r.edit.push({
                                         path: current.join(","),
                                         props: ctp
