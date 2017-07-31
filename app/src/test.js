@@ -68,17 +68,30 @@ Module({
     extend:"viewgroup",
     autodom:true,
     layout:"<div data-bind='click:change'>"+
-                "{{if data.check}}"+
-                "<div>666666</div>"+
-                "{{/if}}"+
-                "<@module type='{{data.type}}'/>"+
+            "{{if data.list.length>0}}"+
+                "{{list data.list as item}}"+
+                    "<div unique='{{item.id}}'>"+
+                    "<@module type='{{data.type}}' id='{{item.id}}'/>"+
+                    "</div>"+
+                "{{/list}}"+
+            "{{else}}"+
+                "<div class='desc'><div>sdsdsdsd</div><div>wewewewe</div></div>"+
+            "{{/if}}"+
             "</div>",
     option:{
         type:"@.aa",
-        check:true
+        check:true,
+        list:[]
     },
     bind_change:function () {
         this.option.check=this.option.check?false:true;
+        if(this.option.list.length===0) {
+            this.option.list = [
+                {id: $.util.randomid()}
+            ];
+        }else{
+            this.option.list=[];
+        }
         this.update(this.option);
     },
     oninitchildend:function (module) {
