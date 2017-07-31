@@ -5382,7 +5382,7 @@
                 return "<%break;%>";
             },
             "set": function (str) {
-                return "<%var " + str.join(" ") + "%>";
+                return "<%var " + str + ";%>";
             }
         },
         parse: function (strs) {
@@ -5407,7 +5407,7 @@
         var r = str.replace(template.regs.df, function (str) {
             return "data-find='<%=this._prophook(\"" + str.substring(11, str.length - 1) + "\");%>'";
         }).replace(template.regs.dg, function (str) {
-            return "data-group='<%=this._prophook(\"" + ("g:"+str.substring(12, str.length - 1)) + "\");%>'";
+            return "data-group='<%=this._prophook(\"" + ("g:" + str.substring(12, str.length - 1)) + "\");%>'";
         }).replace(template.regs.db, function (str) {
             var val = str.substring(11, str.length - 1);
             var vals = val.split(" ");
@@ -5761,7 +5761,7 @@
                                         path: current.join(","),
                                         node: a[i]
                                     });
-                                }else {
+                                } else {
                                     if (ctp === true) {
                                         template.diffNode(a[i].children, b[i].children, current, r);
                                     } else if (ctp === "replace") {
@@ -6037,17 +6037,40 @@
                 }
             }
             for (var tp in props.final) {
-                if (t.getAttribute(tp) !== props.final[tp]) {
-                    t.setAttribute(tp, props.final[tp]);
-                    t[tp] = props.final[tp];
-                }
-                var etm = attributes.indexOf(tp);
-                if (etm !== -1) {
-                    attributes.splice(etm, 1);
+                if (tp.indexOf(":") === -1) {
+                    if (t.getAttribute(tp) !== props.final[tp]) {
+                        t.setAttribute(tp, props.final[tp]);
+                        try {
+                            t[tp] = props.final[tp];
+                        } catch (e) {
+                        }
+                    }
+                    var etm = attributes.indexOf(tp);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
+                } else {
+                    var to = tp.split(":"), top = to[1], stop = to[0];
+                    if (t.getAttributeNS("http://www.w3.org/1999/" + stop, top) !== props.final[tp]) {
+                        t.setAttributeNS("http://www.w3.org/1999/" + stop, top, props.final[tp]);
+                    }
+                    var etm = attributes.indexOf(top);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
+                    etm = attributes.indexOf(tp);
+                    if (etm !== -1) {
+                        attributes.splice(etm, 1);
+                    }
                 }
             }
             for (var tp = 0; tp < attributes.length; tp++) {
-                t.removeAttribute(attributes[tp]);
+                if (attributes[tp].indexOf(":") === -1) {
+                    t.removeAttribute(attributes[tp]);
+                } else {
+                    var to = attributes[tp].split(":"), top = to[1], stop = to[0];
+                    t.removeAttributeNS("http://www.w3.org/1999/" + stop, top, props.final[tp]);
+                }
             }
         }
         for (var i = 0, len = removes.length; i < len; i++) {
@@ -6672,26 +6695,49 @@
                     if (cdt) {
                         var code = cdt, str = code;
                         if (className) {
-                            var _a = code.split(module.regs.d), r = [];
+                            var _a = code.split(module.regs.d);
+                            var _r = [], _t = [];
                             for (var i = 0; i < _a.length; i++) {
                                 var _b = _a[i].trim();
-                                if ((i + 1) % 2 !== 0) {
-                                    r.push(_b.replace(module.regs.cn, function (str) {
-                                        if (str.substring(1).trim() !== className) {
-                                            return "." + className + "-" + str.substring(1);
-                                        } else {
-                                            return str;
-                                        }
-                                    }));
+                                if (_b.indexOf("@media") !== -1) {
+                                    _t.push([].concat(_r));
+                                    _r = [];
+                                }
+                                _r.push(_b);
+                            }
+                            _t.push(_r);
+                            var str = "";
+                            for (var k = 0; k < _t.length; k++) {
+                                var _a = _t[k], _has = false, r = [];
+                                if (_a[0].indexOf("@media") !== -1) {
+                                    _has = true;
+                                    str += _a[0] + "{";
+                                    _a.shift();
+                                }
+                                for (var i = 0; i < _a.length; i++) {
+                                    var _b = _a[i].trim();
+                                    if ((i + 1) % 2 !== 0) {
+                                        r.push(_b.replace(module.regs.cn, function (str) {
+                                            if (str.substring(1).trim() !== className) {
+                                                return "." + className + "-" + str.substring(1);
+                                            } else {
+                                                return str;
+                                            }
+                                        }));
+                                    } else {
+                                        _b && r.push("{" + _b + "}");
+                                    }
+                                }
+                                if (_has) {
+                                    str += r.join("") + "}"
                                 } else {
-                                    _b && r.push("{" + _b + "}");
+                                    str += r.join("");
                                 }
                             }
-                            str = r.join("");
                         }
                         var b = document.getElementsByTagName("style"), has = false;
                         for (var i = 0; i < b.length; i++) {
-                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === (className||"<none>")) {
+                            if (b[i].dataset && b[i].dataset.packet === styleName && b[i].dataset.perfix === (className || "<none>")) {
                                 has = true;
                             }
                         }
@@ -6700,7 +6746,7 @@
                             _a.setAttribute("media", "screen");
                             _a.setAttribute("type", "text/css");
                             _a.setAttribute("data-packet", styleName);
-                            _a.setAttribute("data-perfix", className||"<none>");
+                            _a.setAttribute("data-perfix", className || "<none>");
                             _a.appendChild(document.createTextNode(str));
                             document.getElementsByTagName("head")[0].appendChild(_a);
                         }
@@ -6729,27 +6775,27 @@
                 return code;
             }
         },
-        getLoadedTemplate:function(tempId){
+        getLoadedTemplate: function (tempId) {
             var a = tempId.split("."), _name = a.pop(), _packet = a.join(".");
-            var r="";
-            for(var i in packet.packetsmapping){
-                var b=packet.packetsmapping[i];
-                for(var j=0;j<b.template.length;j++){
-                    if(b.template[j].packet===_packet){
-                        r=b.template[j].value[_name];
+            var r = "";
+            for (var i in packet.packetsmapping) {
+                var b = packet.packetsmapping[i];
+                for (var j = 0; j < b.template.length; j++) {
+                    if (b.template[j].packet === _packet) {
+                        r = b.template[j].value[_name];
                         break;
                     }
                 }
             }
             return r;
         },
-        getLoadedStyle:function(styleId){
-            var r="";
-            for(var i in packet.packetsmapping){
-                var b=packet.packetsmapping[i];
-                for(var j=0;j<b.style.length;j++){
-                    if(b.style[j].packet===styleId){
-                        r=b.style[j].value.code;
+        getLoadedStyle: function (styleId) {
+            var r = "";
+            for (var i in packet.packetsmapping) {
+                var b = packet.packetsmapping[i];
+                for (var j = 0; j < b.style.length; j++) {
+                    if (b.style[j].packet === styleId) {
+                        r = b.style[j].value.code;
                         break;
                     }
                 }
@@ -7264,7 +7310,7 @@
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
                 if (module.isPacketName(this.template)) {
-                    this.template=module.getLoadedTemplate(this.template);
+                    this.template = module.getLoadedTemplate(this.template);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.template = module.parseTemplate(this.style, this.template, this.className);
@@ -7481,7 +7527,7 @@
             }
         },
         original: function (methods) {
-            var target=Object.getPrototypeOf(this);
+            var target = Object.getPrototypeOf(this);
             var a = target[methods];
             if (topolr.is.isFunction(a)) {
                 var b = Array.prototype.slice.call(arguments);
