@@ -75,7 +75,10 @@ Module({
                     "</div>"+
                 "{{/list}}"+
             "{{else}}"+
-                "<div class='desc'><div>sdsdsdsd</div><div>wewewewe</div></div>"+
+                "<div class='desc'>"+
+                    "<div><svg class='mt-icon'><use xlink:href='#mt-icon-backward'></use></svg></div>"+
+                    "<div>ssdsdsdsdsdsdsd</div>"+
+                "</div>"+
             "{{/if}}"+
             "</div>",
     option:{
@@ -87,6 +90,8 @@ Module({
         this.option.check=this.option.check?false:true;
         if(this.option.list.length===0) {
             this.option.list = [
+                {id: $.util.randomid()},
+                {id: $.util.randomid()},
                 {id: $.util.randomid()}
             ];
         }else{

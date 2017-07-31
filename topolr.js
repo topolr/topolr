@@ -1,14 +1,14 @@
 /**
- * version:1.7.0
+ * version:1.7.1
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:72650b9d5f95164c67be9f10fce564d4
+ * hash:a9b19fca7ece9e0153aa743a4a15543c
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.7.0"};
+    var topolrInfo = {"version":"1.7.1"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -7305,7 +7305,7 @@
         autodom: false,
         style: "",
         init: null,
-        template: "",
+        template: "",//[content]
         onbeforeinit: null,
         onendinit: null,
         onunload: topolr.nfn,
@@ -7317,15 +7317,15 @@
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
+                if (this.template && this.template.trim() === "[content]") {
+                    this.template = this.dom.html();
+                }
                 if (module.isPacketName(this.template)) {
                     this.template = module.getLoadedTemplate(this.template);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.template = module.parseTemplate(this.style, this.template, this.className);
                 this.dom.data("--view--", this);
-                if (this.dom.children().length > 0) {
-                    this.template = this.dom.html();
-                }
                 var optionName = this.dom.dataset("option"), ths = this;
                 this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
@@ -7754,7 +7754,7 @@
                             console.error("[topolr] onbeforerender called error with module of " + ths.type() + " Message:" + e.stack);
                         }
                         var str = ths.layout;
-                        if (!str && ths.dom.children().length > 0) {
+                        if (str && str === "[content]") {
                             str = ths.dom.html();
                         }
                         if (topolr.is.isString(str)) {

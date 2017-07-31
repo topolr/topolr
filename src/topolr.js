@@ -7297,7 +7297,7 @@
         autodom: false,
         style: "",
         init: null,
-        template: "",
+        template: "",//[content]
         onbeforeinit: null,
         onendinit: null,
         onunload: topolr.nfn,
@@ -7309,15 +7309,15 @@
         _render: function (fn) {
             if (!this.dom.data("--view--")) {
                 this._rendered = false;
+                if (this.template && this.template.trim() === "[content]") {
+                    this.template = this.dom.html();
+                }
                 if (module.isPacketName(this.template)) {
                     this.template = module.getLoadedTemplate(this.template);
                 }
                 module.actionStyle(this.style, this.packet(), this.className);
                 this.template = module.parseTemplate(this.style, this.template, this.className);
                 this.dom.data("--view--", this);
-                if (this.dom.children().length > 0) {
-                    this.template = this.dom.html();
-                }
                 var optionName = this.dom.dataset("option"), ths = this;
                 this.optionName = optionName;
                 if (this.dom.hasClass("_futuretochange_")) {
@@ -7746,7 +7746,7 @@
                             console.error("[topolr] onbeforerender called error with module of " + ths.type() + " Message:" + e.stack);
                         }
                         var str = ths.layout;
-                        if (!str && ths.dom.children().length > 0) {
+                        if (str && str === "[content]") {
                             str = ths.dom.html();
                         }
                         if (topolr.is.isString(str)) {
