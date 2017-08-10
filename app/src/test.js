@@ -4,6 +4,7 @@
  * @style style.qq;
  * @require service.test;
  * @require action;
+ * @icon icon;
  */
 Module({
     name: "test",

@@ -4382,6 +4382,7 @@
         this.image = [];
         this.text = [];
         this.style = [];
+        this.icon = [];
         this.usestrict = false;
     };
     packetInfo.prototype.getTemplate = function (packetName, key) {
@@ -4450,7 +4451,7 @@
         } else {
             throw Error("[topolr] can not match the map packet of " + packetName);
         }
-    }
+    };
 
     var packet = function (packetName) {
         return packet.run.call(this, packetName);
@@ -4653,6 +4654,15 @@
                     }
                     if (key === "include") {
                         n.children.push(value);
+                    }
+                    if (key === "icon") {
+                        n._depends.push(value + ".icon");
+                        n.children.push(value + ".icon");
+                        n.require.push({
+                            packet: value + ".icon",
+                            path: path,
+                            value: null
+                        });
                     }
                     if (key === "js") {
                         if (value.indexOf("http") !== -1) {

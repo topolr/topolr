@@ -30,13 +30,14 @@
                 "action": "4974dd3c3e",
                 "option.root": "c9657f6297",
                 "service.test": "7dfa08ba90",
-                "test": "07a429bf20"
+                "test": "aa5f501860",
+                "icon.icon": "2490797f0e"
             },
             "c": {
                 "style.icon": "c34b1536de"
             },
             "y": {
-                "style.qq": "2de2c94d72"
+                "style.qq": "8d2a1d02b0"
             },
             "t": {
                 "template.temp": "967e11c49c"
@@ -48,7 +49,8 @@
                     "option.root",
                     "test",
                     "service.test",
-                    "action"
+                    "action",
+                    "icon.icon"
                 ],
                 "c": [
                     "style.icon"
