@@ -1,14 +1,14 @@
 /**
- * version:1.7.2
+ * version:1.7.3
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:e48b2d502d86a4d72e09c32e5cb525e8
+ * hash:bf0e40b6cfe5b58023bfe97e3da9364e
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.7.2"};
+    var topolrInfo = {"version":"1.7.3"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -4390,6 +4390,7 @@
         this.image = [];
         this.text = [];
         this.style = [];
+        this.icon = [];
         this.usestrict = false;
     };
     packetInfo.prototype.getTemplate = function (packetName, key) {
@@ -4458,7 +4459,7 @@
         } else {
             throw Error("[topolr] can not match the map packet of " + packetName);
         }
-    }
+    };
 
     var packet = function (packetName) {
         return packet.run.call(this, packetName);
@@ -4661,6 +4662,15 @@
                     }
                     if (key === "include") {
                         n.children.push(value);
+                    }
+                    if (key === "icon") {
+                        n._depends.push(value + ".icon");
+                        n.children.push(value + ".icon");
+                        n.require.push({
+                            packet: value + ".icon",
+                            path: path,
+                            value: null
+                        });
                     }
                     if (key === "js") {
                         if (value.indexOf("http") !== -1) {
