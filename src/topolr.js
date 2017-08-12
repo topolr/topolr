@@ -5823,7 +5823,7 @@
     };
     template.checkSort = function (a, b) {
         var c = [], r = [];
-        if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
+        if (a[0] && b[0] && a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
             for (var i = 0, len = a.length; i < len; i++) {
                 c.push(a[i].props.unique);
             }

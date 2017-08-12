@@ -1,14 +1,14 @@
 /**
- * version:1.7.3
+ * version:1.7.4
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:bf0e40b6cfe5b58023bfe97e3da9364e
+ * hash:abb9bc37d7e6124ef876dd88d70ab00b
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.7.3"};
+    var topolrInfo = {"version":"1.7.4"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -5831,7 +5831,7 @@
     };
     template.checkSort = function (a, b) {
         var c = [], r = [];
-        if (a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
+        if (a[0] && b[0] && a[0].props && a[0].props.unique && b[0].props && b[0].props.unique) {
             for (var i = 0, len = a.length; i < len; i++) {
                 c.push(a[i].props.unique);
             }
