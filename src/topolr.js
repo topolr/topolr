@@ -6100,7 +6100,9 @@
                 }
             }
             if (t) {
-                t.innerHTML = "";
+                if (!(t.datasets && t.datasets["--view--"])) {
+                    t.innerHTML = "";
+                }
             }
         }
         for (var i in adds) {
