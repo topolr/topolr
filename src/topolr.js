@@ -8099,6 +8099,13 @@
             }
             return r;
         },
+        getSortedChildren: function () {
+            var r = [];
+            this.dom.find("[data-parent-view='" + this.getId() + "']").each(function () {
+                r.push($(this).getModule());
+            });
+            return r;
+        },
         getChildIndex: function (view) {
             return this.children.indexOf(view);
         },
