@@ -3776,6 +3776,19 @@
                                 time++;
                             }
                         }
+                        for(var ct in b){
+                            if(ct!==alias){
+                                var ctt=b[ct];
+                                for (var m = 0; m < ctt.length; m++) {
+                                    var et = ctt[m];
+                                    var hash3 = source.current.map.m[ctt] ? source.current.map.m[ctt][et] : null;
+                                    var hash4 = source.local[type] ? source.local[type][et] ? source.local[type][et].hash : "" : "";
+                                    if (hash3 !== hash4) {
+                                        time++;
+                                    }
+                                }
+                            }
+                        }
                         if (time > 2) {
                             r = source.basePath + i + ".js";
                         }
