@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:f9064077db8bcdb6d58d4df8337dcd96
+ * hash:0207fbf1ec1f3fa29db54b445359aff8
  */
 (function () {
     "use strict";
@@ -5413,7 +5413,7 @@
                 return "<%break;%>";
             },
             "set": function (str) {
-                return "<%var " + str + ";%>";
+                return "<%var " + str.join(" ") + ";%>";
             }
         },
         parse: function (strs) {
@@ -7661,7 +7661,7 @@
             return this.dom.find("[data-find='" + (this.getShortUUID() + "-" + name) + "']");
         },
         groups: function (name) {
-            return this.dom.find("[data-group='g:" + (this.getShortUUID() + "-" + name) + "']");
+            return this.dom.find("[data-group='" + (this.getShortUUID() + "-g:" + name) + "']");
         },
         service_schange: function (data, info) {
             this.update(data);

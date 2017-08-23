@@ -5405,7 +5405,7 @@
                 return "<%break;%>";
             },
             "set": function (str) {
-                return "<%var " + str + ";%>";
+                return "<%var " + str.join(" ") + ";%>";
             }
         },
         parse: function (strs) {
@@ -7653,7 +7653,7 @@
             return this.dom.find("[data-find='" + (this.getShortUUID() + "-" + name) + "']");
         },
         groups: function (name) {
-            return this.dom.find("[data-group='g:" + (this.getShortUUID() + "-" + name) + "']");
+            return this.dom.find("[data-group='" + (this.getShortUUID() + "-g:" + name) + "']");
         },
         service_schange: function (data, info) {
             this.update(data);
