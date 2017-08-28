@@ -7449,9 +7449,15 @@
                 }
             } else {
                 this.triggerEvent(event);
-                if (event._goon && this.typeOf("viewgroup")) {
-                    for (var i = 0; i < this.children.length; i++) {
-                        this.children[i].dispatchEvent(type, data, false);
+                if(!this.isRemoved()){
+                    if (event._goon && this.typeOf("viewgroup")) {
+                        for (var i = 0,len=this.children.length;i<len;i++) {
+                            if(!this.isRemoved()){
+                                this.children[i].dispatchEvent(type, data, false);
+                            }else{
+                                break;
+                            }
+                        }
                     }
                 }
             }
