@@ -1,14 +1,14 @@
 /**
- * version:1.7.7
+ * version:1.7.9
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:0207fbf1ec1f3fa29db54b445359aff8
+ * hash:be02eba6814f0e32696b1e058670ad68
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.7.7"};
+    var topolrInfo = {"version":"1.7.9"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -7457,9 +7457,15 @@
                 }
             } else {
                 this.triggerEvent(event);
-                if (event._goon && this.typeOf("viewgroup")) {
-                    for (var i = 0; i < this.children.length; i++) {
-                        this.children[i].dispatchEvent(type, data, false);
+                if(!this.isRemoved()){
+                    if (event._goon && this.typeOf("viewgroup")) {
+                        for (var i = 0,len=this.children.length;i<len;i++) {
+                            if(!this.isRemoved()){
+                                this.children[i].dispatchEvent(type, data, false);
+                            }else{
+                                break;
+                            }
+                        }
                     }
                 }
             }
