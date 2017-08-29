@@ -3675,7 +3675,7 @@
             return this;
         },
         getRoot: function () {
-            return this.source.root;
+            return source.root;
         },
         setSitePath: function (path) {
             if (!app._done) {
