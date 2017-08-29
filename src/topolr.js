@@ -3756,6 +3756,7 @@
             style: "css-code-css-text-y"
         },
         sourceTypeAlias: {},
+        aliasOfsoureType:{},
         current: {
             map: {},
             getPacketPath: function (packetName, type) {
@@ -3764,44 +3765,34 @@
                 }
                 var alias = source.sourceTypeAlias[type];
                 var iscompress = true, a = source.current.map.c, r = "";
-                var _map={};
+                var _result={};
                 for (var i in a) {
                     var b = a[i];
                     if (b[alias] && b[alias].indexOf(packetName) !== -1) {
                         var time = 0;
-                        for (var m = 0; m < b[alias].length; m++) {
-                            var e = b[alias][m];
-                            var hash = source.current.map.m[alias] ? source.current.map.m[alias][e] : null;
-                            var hash2 = source.local[type] ? source.local[type][e] ? source.local[type][e].hash : "" : "";
-                            if (hash !== hash2) {
-                                time++;
-                            }
-                        }
                         for(var ct in b){
-                            if(ct!==alias){
-                                var ctt=b[ct];
-                                for (var m = 0; m < ctt.length; m++) {
-                                    var et = ctt[m];
-                                    var hash3 = source.current.map.m[ctt] ? source.current.map.m[ctt][et] : null;
-                                    var hash4 = source.local[type] ? source.local[type][et] ? source.local[type][et].hash : "" : "";
-                                    if (hash3 !== hash4) {
-                                        time++;
-                                    }
+                            var ctt=b[ct];
+                            for(var m=0;m<ctt.length;m++){
+                                var _packet=ctt[m],_type=source.aliasOfsoureType[ct];
+                                var hash=source.current.map.m[ct]?source.current.map.m[ct][_packet]:null;
+                                var hash2=source.local[_type]?(source.local[_type][_packet]?source.local[_type][_packet].hash:""):"";
+                                if(hash!==hash2){
+                                    time++;
                                 }
                             }
                         }
-                        if (time > 2) {
-                            _map[time]=source.basePath + i + ".js";
+                        if(time>5){
+                            _result[time]=source.basePath + i + ".js";
                         }
                     }
                 }
-                var et=0;
-                for(var i in _map){
-                    if(i>et){
-                        et=i;
+                var _et=0;
+                for(var i in _result){
+                    if(i>_et){
+                        _et=i;
                     }
                 }
-                r=_map[et];
+                r=_result[_et];
                 if (!r) {
                     iscompress = false;
                     r = source.getPacketPath(packetName, type);
@@ -3835,7 +3826,9 @@
             source.debug = source.current.map.d;
             source.basePath = mapping.basePath;
             for (var i in source.sourceType) {
-                source.sourceTypeAlias[i] = source.sourceType[i].split("-").pop();
+                var _alias=source.sourceType[i].split("-").pop();
+                source.sourceTypeAlias[i] = _alias;
+                source.aliasOfsoureType[_alias]=i;
             }
             if (!source.debug && mapping.map) {
                 var type = source.persist.checkPersist();
