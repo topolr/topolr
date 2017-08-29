@@ -3764,6 +3764,7 @@
                 }
                 var alias = source.sourceTypeAlias[type];
                 var iscompress = true, a = source.current.map.c, r = "";
+                var _map={};
                 for (var i in a) {
                     var b = a[i];
                     if (b[alias] && b[alias].indexOf(packetName) !== -1) {
@@ -3790,11 +3791,17 @@
                             }
                         }
                         if (time > 2) {
-                            r = source.basePath + i + ".js";
+                            _map[time]=source.basePath + i + ".js";
                         }
-                        break;
                     }
                 }
+                var et=0;
+                for(var i in _map){
+                    if(i>et){
+                        et=i;
+                    }
+                }
+                r=_map[et];
                 if (!r) {
                     iscompress = false;
                     r = source.getPacketPath(packetName, type);
