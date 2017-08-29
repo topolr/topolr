@@ -3781,7 +3781,7 @@
                                 }
                             }
                         }
-                        if(time>5){
+                        if(time>3){
                             _result[time]=source.basePath + i + ".js";
                         }
                     }

@@ -4,7 +4,7 @@
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:3d73a6120dd49408527af6820ae510ff
+ * hash:1b8a80d961e1d4ed13c2da58c86845f0
  */
 (function () {
     "use strict";
@@ -3789,7 +3789,7 @@
                                 }
                             }
                         }
-                        if(time>5){
+                        if(time>3){
                             _result[time]=source.basePath + i + ".js";
                         }
                     }
