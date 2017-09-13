@@ -4515,9 +4515,7 @@
     packet.run = function (packetName) {
         this.info = [];
         var ths = this, ps = topolr.promise();
-        console.time("aa")
         this.load(packetName,function () {
-            console.timeEnd("aa")
             var re = packet.dependsSort.call(ths, ths.info);
             if (re.length === ths.info.length) {
                 ths.info = re;

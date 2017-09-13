@@ -1,14 +1,14 @@
 /**
- * version:1.8.2
+ * version:1.8.3
  * desc:topolr frontend base library
  * site:http://topolr.org/
  * git:https://github.com/topolr/topolr.git
  * author:WangJinliang(hou80houzhu)
- * hash:32f6a83a61c23beee9d054ed59c7c119
+ * hash:243e40ba02063e5eb4de256daa93c052
  */
 (function () {
     "use strict";
-    var topolrInfo = {"version":"1.8.2"};
+    var topolrInfo = {"version":"1.8.3"};
     var topolr = function (start) {
         return new dom(start);
     };
@@ -4523,9 +4523,7 @@
     packet.run = function (packetName) {
         this.info = [];
         var ths = this, ps = topolr.promise();
-        console.time("aa")
         this.load(packetName,function () {
-            console.timeEnd("aa")
             var re = packet.dependsSort.call(ths, ths.info);
             if (re.length === ths.info.length) {
                 ths.info = re;
