@@ -3947,6 +3947,25 @@
             }
             return r;
         },
+        getActive:function(packetName, type) {
+            if (!type) {
+                type = "packet";
+            }
+            var _m = source.getProcessor(type);
+            var trigger = _m.trigger;
+            if(source.sourcestate[trigger][packetName]){
+                return source.sourcestate[trigger][packetName];
+            }
+            return null;
+        },
+        sourcestate:{
+            js:{},
+            css:{},
+            code:{},
+            text:{},
+            image:{},
+            json:{}
+        },
         persist: {
             checkPersist: function () {
                 if (window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB) {
@@ -4228,23 +4247,20 @@
         trigger: {
             js: function (info, packetName) {
                 return topolr.promise(function (a) {
-                    try {
-                        (new Function("window", "console", info.code)).call(window, window, window.console);
-                    } catch (e) {
-                        console.error(e);
+                    if(!source.sourcestate.js[packetName]){
+                        try {
+                            (new Function("window", "console", info.code)).call(window, window, window.console);
+                            source.sourcestate.js[packetName]=true;
+                        } catch (e) {
+                            console.error(e);
+                        }
                     }
                     a();
                 });
             },
             css: function (info, packetName) {
                 return topolr.promise(function (a) {
-                    var b = document.getElementsByTagName("style"), has = false;
-                    for (var i = 0; i < b.length; i++) {
-                        if (b[i].dataset && b[i].dataset.packet === packetName) {
-                            has = true;
-                        }
-                    }
-                    if (!has) {
+                    if(!source.sourcestate.css[packetName]){
                         var path = info.path;
                         var _a = document.createElement("style");
                         _a.setAttribute("media", "screen");
@@ -4252,19 +4268,24 @@
                         _a.setAttribute("data-packet", packetName);
                         _a.appendChild(document.createTextNode(info.code));
                         document.getElementsByTagName("head")[0].appendChild(_a);
-                        a();
-                    } else {
-                        a();
+                        source.sourcestate.css[packetName]=true;
                     }
+                    a();
                 });
             },
             code: function (a, packetName) {
                 return topolr.promise(function (b) {
+                    if(!source.sourcestate.code[packetName]){
+                        source.sourcestate.code[packetName]=a.code;
+                    }
                     b(a.code);
                 });
             },
             text: function (a, packetName) {
                 return topolr.promise(function (b) {
+                    if(!source.sourcestate.text[packetName]){
+                        source.sourcestate.text[packetName]=a;
+                    }
                     b(a);
                 });
             },
@@ -4289,6 +4310,9 @@
             },
             json: function (a, packetName) {
                 return topolr.promise(function (b) {
+                    if(!source.sourcestate.js[packetName]){
+                        source.sourcestate.js[packetName]=JSON.parse(a);
+                    }
                     b(JSON.parse(a));
                 });
             }
@@ -4532,7 +4556,7 @@
     packet.run = function (packetName) {
         this.info = [];
         var ths = this, ps = topolr.promise();
-        this.load(packetName).done(function () {
+        this.load(packetName,function () {
             var re = packet.dependsSort.call(ths, ths.info);
             if (re.length === ths.info.length) {
                 ths.info = re;
@@ -4754,9 +4778,11 @@
             return str.substring(1);
         });
     };
-    packet.prototype.load = function (pkt) {
-        var ths = this, pathname = source.getPacketPath(pkt, "js"), ps = topolr.promise();
-        source.get(pkt, "packet").then(function (content) {
+    packet.prototype.load = function (pkt,fn) {
+        var ths = this;
+        var pathname = source.getPacketPath(pkt, "js");
+        var mtp=source.getActive(pkt, "packet");
+        var doit=function (content) {
             var aa = packet.getPacketInfo.call(ths, content);
             if (aa.packet === "nopacket") {
                 console.error("[topolr] file has no packet info,path of " + pathname);
@@ -4770,22 +4796,27 @@
             for (var t in ee) {
                 var rtt = aa[ee[t]];
                 for (var i = 0; i < rtt.length; i++) {
-                    queue.add(function (a, b) {
-                        source.get(b.info.packet, b.type).done(function (it) {
-                            b.info.value = it;
-                            queue.next();
+                    var mt=source.getActive(rtt[i].packet, ee[t]);
+                    if(!mt){
+                        queue.add(function (a, b) {
+                            source.get(b.info.packet, b.type).done(function (it) {
+                                b.info.value = it;
+                                queue.next();
+                            });
+                        }, function (a, b) {
+                            console.error(b);
+                        }, {
+                            info: rtt[i],
+                            type: ee[t]
                         });
-                    }, function (a, b) {
-                        console.error(b);
-                    }, {
-                        info: rtt[i],
-                        type: ee[t]
-                    });
+                    }else{
+                        rtt[i].value=mt;
+                    }
                 }
             }
             for (var i = 0; i < aa.require.length; i++) {
                 queue.add(function (a, b) {
-                    ths.load(b.packet).done(function () {
+                    ths.load(b.packet,function () {
                         queue.next();
                     });
                 }, function (a, b) {
@@ -4796,12 +4827,16 @@
                 });
             }
             queue.complete(function () {
-                ps.resolve();
+                fn&&fn();
             }).run();
-        }).fail(function (a) {
-            console.error(a);
-        });
-        return ps;
+        };
+        if(mtp){
+            doit(mtp);
+        }else{
+            source.get(pkt, "packet").then(doit).fail(function (a) {
+                console.error(a);
+            });
+        }
     };
     packet.prototype.clean = function () {
         for (var i in this) {
@@ -6490,7 +6525,7 @@
                 ths._update(ths._isupdatequeue);
                 ths._isupdatequeue = null;
                 ths._renderDone && ths._renderDone();
-            }, 0);
+            });
         }
         this._isupdatequeue = dataarray;
     };
