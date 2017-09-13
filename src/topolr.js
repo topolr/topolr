@@ -475,6 +475,7 @@
     topolr.json = json, topolr.is = is, topolr.browser = browser, topolr.prefix = prefix, topolr.util = util;
     topolr.serialize = serialize, topolr.extend = topolr.json.cover, topolr.nfn = function () {
     };
+    topolr.Info=topolrInfo;
 
     var queue = function () {
         this.list = [];
@@ -3641,7 +3642,7 @@
                     } catch (e) {
                         console.error(e);
                     }
-                    source.init(app.option).done(function () {
+                    source.init(app.option,function () {
                         var root = topolr("body");
                         if (root.length > 0) {
                             if (topolr.is.isString(optionName)) {
@@ -3821,7 +3822,7 @@
         local: {},
         root: null,
         persister: null,
-        init: function (mapping) {
+        init: function (mapping,fn) {
             source.current.map = mapping.map || {d: false};
             source.debug = source.current.map.d;
             source.basePath = mapping.basePath;
@@ -3842,72 +3843,68 @@
             } else {
                 source.persister = source.persist.empty;
             }
-            return source.persister.getAll().then(function (data) {
+            source.persister.getAll(function (data) {
                 source.ready = true;
                 source.appender.appendInit();
                 source.local = topolr.extend({}, data, source.local);
-            }, function (e) {
-                console.error(e);
-                return e;
+                fn&&fn();
             });
         },
-        get: function (packetName, type) {
+        get: function (packetName, type,fn) {
             if (!type) {
                 type = "packet";
             }
             var _m = source.getProcessor(type);
             var loader = _m.loader, trigger = _m.trigger, parser = _m.parser;
             var l = source.local[type] ? source.local[type][packetName] : null;
+            var isnext=true;
             if (l) {
                 var c = source.current.get(packetName, type);
                 if (!c || l.hash === c) {
-                    return source.trigger[trigger](l.content, packetName);
+                    isnext=false;
+                    source.trigger[trigger](l.content, packetName,fn);
                 }
             }
-            var mt = source.current.getPacketPath(packetName, type);
-            var path = mt.path;
-            if (mt.compress) {
-                source.root && source.root.dispatchEvent("sourceload", {type: "full", path: path});
-                return source.loader.compress(path).then(function (b) {
-                    source.root && source.root.dispatchEvent("sourceloaded", {type: "full", path: path});
-                    for (var i in b) {
-                        var _type = i, ainfo = b[i];
-                        for (var h = 0; h < ainfo.length; h++) {
-                            var info = ainfo[h];
-                            var _parser = source.getProcessor(_type).parser;
-                            var r = source.parser[_parser](source.getPacketPath(info.p, _type), info.c);
-                            if (!source.local[_type]) {
-                                source.local[_type] = {};
+            if(isnext){
+                var mt = source.current.getPacketPath(packetName, type);
+                var path = mt.path;
+                if (mt.compress) {
+                    source.root && source.root.dispatchEvent("sourceload", {type: "full", path: path});
+                    source.loader.compress(path,function (b) {
+                        source.root && source.root.dispatchEvent("sourceloaded", {type: "full", path: path});
+                        for (var i in b) {
+                            var _type = i, ainfo = b[i];
+                            for (var h = 0; h < ainfo.length; h++) {
+                                var info = ainfo[h];
+                                var _parser = source.getProcessor(_type).parser;
+                                var r = source.parser[_parser](source.getPacketPath(info.p, _type), info.c);
+                                if (!source.local[_type]) {
+                                    source.local[_type] = {};
+                                }
+                                source.local[_type][info.p] = {hash: info.h, content: r};
                             }
-                            source.local[_type][info.p] = {hash: info.h, content: r};
                         }
-                    }
-                    source.persister.saveAll(source.local);
-                    var l = source.local[type][packetName];
-                    if (l) {
-                        return source.trigger[trigger](l.content, packetName);
-                    } else {
-                        throw Error("[topolr] packet can not find name is " + packetName);
-                    }
-                }, function (e) {
-                    console.error(e);
-                    return e;
-                });
-            } else {
-                source.root && source.root.dispatchEvent("sourceload", {type: "slice", path: path});
-                return source.loader[loader](path).then(function (content) {
-                    source.root && source.root.dispatchEvent("sourceloaded", {type: "slice", path: path});
-                    content = source.parser[parser](path, content);
-                    if (!source.local[type]) {
-                        source.local[type] = {};
-                    }
-                    source.local[type][packetName] = {hash: source.current.get(packetName, type), content: content};
-                    source.persister.saveAll(source.local);
-                    return source.trigger[trigger](content, packetName);
-                }, function (e) {
-                    console.error("[topolr] packet can not find name is " + packetName);
-                    return e;
-                });
+                        source.persister.saveAll(source.local);
+                        var l = source.local[type][packetName];
+                        if (l) {
+                            source.trigger[trigger](l.content, packetName,fn);
+                        } else {
+                            throw Error("[topolr] packet can not find name is " + packetName);
+                        }
+                    });
+                } else {
+                    source.root && source.root.dispatchEvent("sourceload", {type: "slice", path: path});
+                    source.loader[loader](path,function (content) {
+                        source.root && source.root.dispatchEvent("sourceloaded", {type: "slice", path: path});
+                        content = source.parser[parser](path, content);
+                        if (!source.local[type]) {
+                            source.local[type] = {};
+                        }
+                        source.local[type][packetName] = {hash: source.current.get(packetName, type), content: content};
+                        source.persister.saveAll(source.local);
+                        source.trigger[trigger](content, packetName,fn);
+                    });
+                }
             }
         },
         getPacketName: function (path) {
@@ -3977,50 +3974,38 @@
                 }
             },
             empty: {
-                getAll: function () {
-                    return topolr.promise(function (a) {
-                        a({});
-                    });
+                getAll: function (fn) {
+                    fn&&fn({});
                 },
-                saveAll: function () {
-                    return topolr.promise(function (a) {
-                        a();
-                    });
+                saveAll: function (data,fn) {
+                    fn&&fn();
                 },
-                clean: function () {
-                    return topolr.promise(function (a) {
-                        a();
-                    });
+                clean: function (fn) {
+                    fn&&fn();
                 }
             },
             storage: {
-                getAll: function () {
+                getAll: function (fn) {
                     var r = {};
                     try {
                         r = window.localStorage.getItem("topolr-local-source");
                     } catch (e) {
                     }
-                    return topolr.promise(function (a) {
-                        a(r);
-                    });
+                    fn&&fn(r);
                 },
-                saveAll: function (data) {
+                saveAll: function (data,fn) {
                     try {
                         window.localStorage.setItem("topolr-local-source", window.JSON.stringify(data));
                     } catch (e) {
                     }
-                    return topolr.promise(function (a) {
-                        a();
-                    });
+                    fn&&fn();
                 },
-                clean: function () {
+                clean: function (fn) {
                     try {
                         window.localStorage.removeItem("topolr-local-source");
                     } catch (e) {
                     }
-                    return topolr.promise(function (a) {
-                        a();
-                    });
+                    fn&&fn();
                 }
             },
             database: {
@@ -4032,8 +4017,7 @@
                     key: "name",
                     value: "local"
                 },
-                init: function () {
-                    var ps = topolr.promise();
+                init: function (fn) {
                     if (!window.indexedDB) {
                         window.indexedDB = window.mozIndexedDB || window.webkitIndexedDB;
                     }
@@ -4048,132 +4032,119 @@
                     };
                     request.onsuccess = function (e) {
                         source.persist.database.db = request.result;
-                        ps.resolve();
+                        fn&&fn();
                     }
                     request.onerror = function () {
-                        ps.resolve();
+                        fn&&fn();
                     };
-                    return ps;
                 },
-                getAll: function () {
-                    var tp = function () {
-                        var ps = topolr.promise();
+                getAll: function (fn) {
+                    var tp = function (fn) {
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.onerror = function (event) {
-                                ps.resolve({});
+                                fn&&fn({});
                             };
                             var request = transaction.objectStore(source.persist.database.info.store).get(source.persist.database.info.value);
                             request.onerror = function (event) {
-                                ps.resolve({});
+                                fn&&fn({});
                             };
                             request.onsuccess = function (event) {
-                                ps.resolve(request.result ? request.result.data : {});
+                                fn&&fn(request.result ? request.result.data : {});
                             };
                         } else {
-                            ps.resolve({});
+                            fn&&fn({});
                         }
-                        return ps;
                     };
                     if (source.persist.database.db) {
-                        return tp();
+                        tp(fn);
                     } else {
-                        return source.persist.database.init().then(function () {
-                            return tp();
-                        }, function (e) {
-                            console.error(e);
-                            return e;
+                        source.persist.database.init(function(){
+                            tp(fn);
                         });
                     }
                 },
-                saveAll: function (data) {
-                    var tp = function () {
-                        var ps = topolr.promise();
+                saveAll: function (data,fn) {
+                    var tp = function (fn) {
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.oncomplete = function (event) {
-                                ps.resolve();
+                                fn&&fn();
                             };
                             transaction.onerror = function (event) {
-                                ps.resolve();
+                                fn&&fn();
+                                console.error(event)
                             };
                             transaction.objectStore(source.persist.database.info.store).put({
                                 name: source.persist.database.info.value,
                                 data: data
                             });
                         } else {
-                            ps.resolve();
+                            fn&&fn();
                         }
-                        return ps;
                     };
                     if (source.persist.database.db) {
-                        return tp();
+                        tp(fn);
                     } else {
-                        return source.persist.database.init().then(function () {
-                            return tp();
-                        }, function (e) {
-                            console.error(e);
-                            return e;
+                        source.persist.database.init(function() {
+                            tp(fn);
                         });
                     }
                 },
-                clean: function () {
-                    var tp = function () {
-                        var ps = topolr.promise();
+                clean: function (fn) {
+                    var tp = function (fn) {
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.oncomplete = function (event) {
-                                ps.resolve();
+                                fn&&fn();
                             };
                             transaction.onerror = function (event) {
-                                ps.resolve();
+                                fn&&fn();
                             };
                             transaction.objectStore(source.persist.database.info.store).delete(source.persist.database.info.value);
                         } else {
-                            ps.resolve();
+                            fn&&fn();
                         }
-                        return ps;
                     };
                     if (source.persist.database.db) {
-                        return tp();
+                        fn&&fn();
                     } else {
-                        return source.persist.database.init().then(function () {
-                            return tp();
-                        }, function (e) {
-                            console.error(e);
-                            return e;
+                        source.persist.database.init(function() {
+                            fn&&fn();
                         });
                     }
                 }
             }
         },
         loader: {
-            compress: function (path) {
-                return topolr.ajax({
+            compress: function (path,fn) {
+                topolr.ajax({
                     url: path,
                     method: "get",
-                    dataType: "text"
-                }).then(function (data) {
-                    return JSON.parse(data.substring(21, data.length - 2));
-                }, function (e) {
-                    console.error(e);
-                    return e;
+                    dataType: "text",
+                    success:function(data){
+                        fn&&fn(JSON.parse(data.substring(21, data.length - 2)))
+                    },
+                    error:function(e){
+                        console.error(e);
+                    }
                 });
             },
-            text: function (path) {
-                return topolr.ajax({
+            text: function (path,fn) {
+                topolr.ajax({
                     url: path,
                     method: "get",
-                    dataType: "text"
+                    dataType: "text",
+                    success:function(data){
+                        fn&&fn(data);
+                    }
                 });
             },
-            nothing: function (path) {
-                return topolr.promise(function (a) {
-                    a(path);
-                });
+            nothing: function (path,fn) {
+                fn&&fn(path);
             },
-            code: function (path) {
-                return source.loader.text(path);
+            code: function (path,fn) {
+                source.loader.text(path,fn);
             }
         },
         parser: {
@@ -4245,76 +4216,64 @@
             }
         },
         trigger: {
-            js: function (info, packetName) {
-                return topolr.promise(function (a) {
-                    if(!source.sourcestate.js[packetName]){
-                        try {
-                            (new Function("window", "console", info.code)).call(window, window, window.console);
-                            source.sourcestate.js[packetName]=true;
-                        } catch (e) {
-                            console.error(e);
-                        }
+            js: function (info, packetName,fn) {
+                if(!source.sourcestate.js[packetName]){
+                    try {
+                        (new Function("window", "console", info.code)).call(window, window, window.console);
+                        source.sourcestate.js[packetName]=true;
+                    } catch (e) {
+                        console.error(e);
                     }
-                    a();
-                });
+                }
+                fn&&fn();
             },
-            css: function (info, packetName) {
-                return topolr.promise(function (a) {
-                    if(!source.sourcestate.css[packetName]){
-                        var path = info.path;
-                        var _a = document.createElement("style");
-                        _a.setAttribute("media", "screen");
-                        _a.setAttribute("type", "text/css");
-                        _a.setAttribute("data-packet", packetName);
-                        _a.appendChild(document.createTextNode(info.code));
-                        document.getElementsByTagName("head")[0].appendChild(_a);
-                        source.sourcestate.css[packetName]=true;
-                    }
-                    a();
-                });
+            css: function (info, packetName,fn) {
+                if(!source.sourcestate.css[packetName]){
+                    var path = info.path;
+                    var _a = document.createElement("style");
+                    _a.setAttribute("media", "screen");
+                    _a.setAttribute("type", "text/css");
+                    _a.setAttribute("data-packet", packetName);
+                    _a.appendChild(document.createTextNode(info.code));
+                    document.getElementsByTagName("head")[0].appendChild(_a);
+                    source.sourcestate.css[packetName]=true;
+                }
+                fn&&fn();
             },
-            code: function (a, packetName) {
-                return topolr.promise(function (b) {
-                    if(!source.sourcestate.code[packetName]){
-                        source.sourcestate.code[packetName]=a.code;
-                    }
-                    b(a.code);
-                });
+            code: function (a, packetName,fn) {
+                if(!source.sourcestate.code[packetName]){
+                    source.sourcestate.code[packetName]=a.code;
+                }
+                fn&&fn(a.code);
             },
-            text: function (a, packetName) {
-                return topolr.promise(function (b) {
-                    if(!source.sourcestate.text[packetName]){
-                        source.sourcestate.text[packetName]=a;
-                    }
-                    b(a);
-                });
+            text: function (a, packetName,fn) {
+                if(!source.sourcestate.text[packetName]){
+                    source.sourcestate.text[packetName]=a;
+                }
+                fn&&fn(a);
             },
-            image: function (info, packetName) {
+            image: function (info, packetName,fn) {
                 var path = info.path;
-                var ps = topolr.promise();
                 var _a = document.createElement("img");
                 var _ol = function (e) {
                     e.target.removeEventListener("load", _ol);
                     e.target.removeEventListener("error", _oe);
-                    ps.resolve(e.target);
+                    fn&&fn(e.target);
                 };
                 var _oe = function (e) {
                     e.target.removeEventListener("load", _ol);
                     e.target.removeEventListener("error", _oe);
-                    ps.reject(e);
+                    fn&&fn();
                 };
                 _a.src = path;
                 _a.addEventListener("load", _ol, false);
                 _a.addEventListener("error", _oe, false);
-                return ps;
             },
-            json: function (a, packetName) {
-                return topolr.promise(function (b) {
-                    if(!source.sourcestate.js[packetName]){
-                        source.sourcestate.js[packetName]=JSON.parse(a);
-                    }
-                    b(JSON.parse(a));
-                });
+            json: function (a, packetName,fn) {
+                if(!source.sourcestate.js[packetName]){
+                    source.sourcestate.js[packetName]=JSON.parse(a);
+                }
+                fn&&fn(JSON.parse(a));
             }
         },
         path: {
@@ -4402,7 +4361,7 @@
     topolr.source = function (b) {
         source.appender.appendSource(b);
     };
-
+    window.source=source;
     var packetInfo = function () {
         this._packets_ = {};
         this.exports = {};
@@ -4556,7 +4515,9 @@
     packet.run = function (packetName) {
         this.info = [];
         var ths = this, ps = topolr.promise();
+        console.time("aa")
         this.load(packetName,function () {
+            console.timeEnd("aa")
             var re = packet.dependsSort.call(ths, ths.info);
             if (re.length === ths.info.length) {
                 ths.info = re;
@@ -4799,7 +4760,7 @@
                     var mt=source.getActive(rtt[i].packet, ee[t]);
                     if(!mt){
                         queue.add(function (a, b) {
-                            source.get(b.info.packet, b.type).done(function (it) {
+                            source.get(b.info.packet, b.type,function (it) {
                                 b.info.value = it;
                                 queue.next();
                             });
@@ -4833,8 +4794,8 @@
         if(mtp){
             doit(mtp);
         }else{
-            source.get(pkt, "packet").then(doit).fail(function (a) {
-                console.error(a);
+            source.get(pkt, "packet",function(a) {
+                doit(a);
             });
         }
     };
