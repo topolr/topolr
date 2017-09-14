@@ -475,7 +475,7 @@
     topolr.json = json, topolr.is = is, topolr.browser = browser, topolr.prefix = prefix, topolr.util = util;
     topolr.serialize = serialize, topolr.extend = topolr.json.cover, topolr.nfn = function () {
     };
-    topolr.Info=topolrInfo;
+    topolr.Info = topolrInfo;
 
     var queue = function () {
         this.list = [];
@@ -3642,7 +3642,7 @@
                     } catch (e) {
                         console.error(e);
                     }
-                    source.init(app.option,function () {
+                    source.init(app.option, function () {
                         var root = topolr("body");
                         if (root.length > 0) {
                             if (topolr.is.isString(optionName)) {
@@ -3757,7 +3757,7 @@
             style: "css-code-css-text-y"
         },
         sourceTypeAlias: {},
-        aliasOfsoureType:{},
+        aliasOfsoureType: {},
         current: {
             map: {},
             getPacketPath: function (packetName, type) {
@@ -3766,34 +3766,34 @@
                 }
                 var alias = source.sourceTypeAlias[type];
                 var iscompress = true, a = source.current.map.c, r = "";
-                var _result={};
+                var _result = {};
                 for (var i in a) {
                     var b = a[i];
                     if (b[alias] && b[alias].indexOf(packetName) !== -1) {
                         var time = 0;
-                        for(var ct in b){
-                            var ctt=b[ct];
-                            for(var m=0;m<ctt.length;m++){
-                                var _packet=ctt[m],_type=source.aliasOfsoureType[ct];
-                                var hash=source.current.map.m[ct]?source.current.map.m[ct][_packet]:null;
-                                var hash2=source.local[_type]?(source.local[_type][_packet]?source.local[_type][_packet].hash:""):"";
-                                if(hash!==hash2){
+                        for (var ct in b) {
+                            var ctt = b[ct];
+                            for (var m = 0; m < ctt.length; m++) {
+                                var _packet = ctt[m], _type = source.aliasOfsoureType[ct];
+                                var hash = source.current.map.m[ct] ? source.current.map.m[ct][_packet] : null;
+                                var hash2 = source.local[_type] ? (source.local[_type][_packet] ? source.local[_type][_packet].hash : "") : "";
+                                if (hash !== hash2) {
                                     time++;
                                 }
                             }
                         }
-                        if(time>3){
-                            _result[time]=source.basePath + i + ".js";
+                        if (time > 3) {
+                            _result[time] = source.basePath + i + ".js";
                         }
                     }
                 }
-                var _et=0;
-                for(var i in _result){
-                    if(i>_et){
-                        _et=i;
+                var _et = 0;
+                for (var i in _result) {
+                    if (i > _et) {
+                        _et = i;
                     }
                 }
-                r=_result[_et];
+                r = _result[_et];
                 if (!r) {
                     iscompress = false;
                     r = source.getPacketPath(packetName, type);
@@ -3822,14 +3822,14 @@
         local: {},
         root: null,
         persister: null,
-        init: function (mapping,fn) {
+        init: function (mapping, fn) {
             source.current.map = mapping.map || {d: false};
             source.debug = source.current.map.d;
             source.basePath = mapping.basePath;
             for (var i in source.sourceType) {
-                var _alias=source.sourceType[i].split("-").pop();
+                var _alias = source.sourceType[i].split("-").pop();
                 source.sourceTypeAlias[i] = _alias;
-                source.aliasOfsoureType[_alias]=i;
+                source.aliasOfsoureType[_alias] = i;
             }
             if (!source.debug && mapping.map) {
                 var type = source.persist.checkPersist();
@@ -3847,30 +3847,30 @@
                 source.ready = true;
                 source.appender.appendInit();
                 source.local = topolr.extend({}, data, source.local);
-                fn&&fn();
+                fn && fn();
             });
         },
-        get: function (packetName, type,fn) {
+        get: function (packetName, type, fn) {
             if (!type) {
                 type = "packet";
             }
             var _m = source.getProcessor(type);
             var loader = _m.loader, trigger = _m.trigger, parser = _m.parser;
             var l = source.local[type] ? source.local[type][packetName] : null;
-            var isnext=true;
+            var isnext = true;
             if (l) {
                 var c = source.current.get(packetName, type);
                 if (!c || l.hash === c) {
-                    isnext=false;
-                    source.trigger[trigger](l.content, packetName,fn);
+                    isnext = false;
+                    source.trigger[trigger](l.content, packetName, fn);
                 }
             }
-            if(isnext){
+            if (isnext) {
                 var mt = source.current.getPacketPath(packetName, type);
                 var path = mt.path;
                 if (mt.compress) {
                     source.root && source.root.dispatchEvent("sourceload", {type: "full", path: path});
-                    source.loader.compress(path,function (b) {
+                    source.loader.compress(path, function (b) {
                         source.root && source.root.dispatchEvent("sourceloaded", {type: "full", path: path});
                         for (var i in b) {
                             var _type = i, ainfo = b[i];
@@ -3887,14 +3887,14 @@
                         source.persister.saveAll(source.local);
                         var l = source.local[type][packetName];
                         if (l) {
-                            source.trigger[trigger](l.content, packetName,fn);
+                            source.trigger[trigger](l.content, packetName, fn);
                         } else {
                             throw Error("[topolr] packet can not find name is " + packetName);
                         }
                     });
                 } else {
                     source.root && source.root.dispatchEvent("sourceload", {type: "slice", path: path});
-                    source.loader[loader](path,function (content) {
+                    source.loader[loader](path, function (content) {
                         source.root && source.root.dispatchEvent("sourceloaded", {type: "slice", path: path});
                         content = source.parser[parser](path, content);
                         if (!source.local[type]) {
@@ -3902,7 +3902,7 @@
                         }
                         source.local[type][packetName] = {hash: source.current.get(packetName, type), content: content};
                         source.persister.saveAll(source.local);
-                        source.trigger[trigger](content, packetName,fn);
+                        source.trigger[trigger](content, packetName, fn);
                     });
                 }
             }
@@ -3944,24 +3944,24 @@
             }
             return r;
         },
-        getActive:function(packetName, type) {
+        getActive: function (packetName, type) {
             if (!type) {
                 type = "packet";
             }
             var _m = source.getProcessor(type);
             var trigger = _m.trigger;
-            if(source.sourcestate[trigger][packetName]){
+            if (source.sourcestate[trigger][packetName]) {
                 return source.sourcestate[trigger][packetName];
             }
             return null;
         },
-        sourcestate:{
-            js:{},
-            css:{},
-            code:{},
-            text:{},
-            image:{},
-            json:{}
+        sourcestate: {
+            js: {},
+            css: {},
+            code: {},
+            text: {},
+            image: {},
+            json: {}
         },
         persist: {
             checkPersist: function () {
@@ -3975,13 +3975,13 @@
             },
             empty: {
                 getAll: function (fn) {
-                    fn&&fn({});
+                    fn && fn({});
                 },
-                saveAll: function (data,fn) {
-                    fn&&fn();
+                saveAll: function (data, fn) {
+                    fn && fn();
                 },
                 clean: function (fn) {
-                    fn&&fn();
+                    fn && fn();
                 }
             },
             storage: {
@@ -3991,21 +3991,21 @@
                         r = window.localStorage.getItem("topolr-local-source");
                     } catch (e) {
                     }
-                    fn&&fn(r);
+                    fn && fn(r);
                 },
-                saveAll: function (data,fn) {
+                saveAll: function (data, fn) {
                     try {
                         window.localStorage.setItem("topolr-local-source", window.JSON.stringify(data));
                     } catch (e) {
                     }
-                    fn&&fn();
+                    fn && fn();
                 },
                 clean: function (fn) {
                     try {
                         window.localStorage.removeItem("topolr-local-source");
                     } catch (e) {
                     }
-                    fn&&fn();
+                    fn && fn();
                 }
             },
             database: {
@@ -4032,10 +4032,10 @@
                     };
                     request.onsuccess = function (e) {
                         source.persist.database.db = request.result;
-                        fn&&fn();
+                        fn && fn();
                     }
                     request.onerror = function () {
-                        fn&&fn();
+                        fn && fn();
                     };
                 },
                 getAll: function (fn) {
@@ -4043,36 +4043,36 @@
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.onerror = function (event) {
-                                fn&&fn({});
+                                fn && fn({});
                             };
                             var request = transaction.objectStore(source.persist.database.info.store).get(source.persist.database.info.value);
                             request.onerror = function (event) {
-                                fn&&fn({});
+                                fn && fn({});
                             };
                             request.onsuccess = function (event) {
-                                fn&&fn(request.result ? request.result.data : {});
+                                fn && fn(request.result ? request.result.data : {});
                             };
                         } else {
-                            fn&&fn({});
+                            fn && fn({});
                         }
                     };
                     if (source.persist.database.db) {
                         tp(fn);
                     } else {
-                        source.persist.database.init(function(){
+                        source.persist.database.init(function () {
                             tp(fn);
                         });
                     }
                 },
-                saveAll: function (data,fn) {
+                saveAll: function (data, fn) {
                     var tp = function (fn) {
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.oncomplete = function (event) {
-                                fn&&fn();
+                                fn && fn();
                             };
                             transaction.onerror = function (event) {
-                                fn&&fn();
+                                fn && fn();
                                 console.error(event)
                             };
                             transaction.objectStore(source.persist.database.info.store).put({
@@ -4080,13 +4080,13 @@
                                 data: data
                             });
                         } else {
-                            fn&&fn();
+                            fn && fn();
                         }
                     };
                     if (source.persist.database.db) {
                         tp(fn);
                     } else {
-                        source.persist.database.init(function() {
+                        source.persist.database.init(function () {
                             tp(fn);
                         });
                     }
@@ -4096,55 +4096,55 @@
                         if (source.persist.database.db) {
                             var transaction = source.persist.database.db.transaction([source.persist.database.info.store], "readwrite");
                             transaction.oncomplete = function (event) {
-                                fn&&fn();
+                                fn && fn();
                             };
                             transaction.onerror = function (event) {
-                                fn&&fn();
+                                fn && fn();
                             };
                             transaction.objectStore(source.persist.database.info.store).delete(source.persist.database.info.value);
                         } else {
-                            fn&&fn();
+                            fn && fn();
                         }
                     };
                     if (source.persist.database.db) {
-                        fn&&fn();
+                        fn && fn();
                     } else {
-                        source.persist.database.init(function() {
-                            fn&&fn();
+                        source.persist.database.init(function () {
+                            fn && fn();
                         });
                     }
                 }
             }
         },
         loader: {
-            compress: function (path,fn) {
+            compress: function (path, fn) {
                 topolr.ajax({
                     url: path,
                     method: "get",
                     dataType: "text",
-                    success:function(data){
-                        fn&&fn(JSON.parse(data.substring(21, data.length - 2)))
+                    success: function (data) {
+                        fn && fn(JSON.parse(data.substring(21, data.length - 2)))
                     },
-                    error:function(e){
+                    error: function (e) {
                         console.error(e);
                     }
                 });
             },
-            text: function (path,fn) {
+            text: function (path, fn) {
                 topolr.ajax({
                     url: path,
                     method: "get",
                     dataType: "text",
-                    success:function(data){
-                        fn&&fn(data);
+                    success: function (data) {
+                        fn && fn(data);
                     }
                 });
             },
-            nothing: function (path,fn) {
-                fn&&fn(path);
+            nothing: function (path, fn) {
+                fn && fn(path);
             },
-            code: function (path,fn) {
-                source.loader.text(path,fn);
+            code: function (path, fn) {
+                source.loader.text(path, fn);
             }
         },
         parser: {
@@ -4216,19 +4216,19 @@
             }
         },
         trigger: {
-            js: function (info, packetName,fn) {
-                if(!source.sourcestate.js[packetName]){
+            js: function (info, packetName, fn) {
+                if (!source.sourcestate.js[packetName]) {
                     try {
                         (new Function("window", "console", info.code)).call(window, window, window.console);
-                        source.sourcestate.js[packetName]=true;
+                        source.sourcestate.js[packetName] = true;
                     } catch (e) {
                         console.error(e);
                     }
                 }
-                fn&&fn();
+                fn && fn();
             },
-            css: function (info, packetName,fn) {
-                if(!source.sourcestate.css[packetName]){
+            css: function (info, packetName, fn) {
+                if (!source.sourcestate.css[packetName]) {
                     var path = info.path;
                     var _a = document.createElement("style");
                     _a.setAttribute("media", "screen");
@@ -4236,44 +4236,44 @@
                     _a.setAttribute("data-packet", packetName);
                     _a.appendChild(document.createTextNode(info.code));
                     document.getElementsByTagName("head")[0].appendChild(_a);
-                    source.sourcestate.css[packetName]=true;
+                    source.sourcestate.css[packetName] = true;
                 }
-                fn&&fn();
+                fn && fn();
             },
-            code: function (a, packetName,fn) {
-                if(!source.sourcestate.code[packetName]){
-                    source.sourcestate.code[packetName]=a.code;
+            code: function (a, packetName, fn) {
+                if (!source.sourcestate.code[packetName]) {
+                    source.sourcestate.code[packetName] = a.code;
                 }
-                fn&&fn(a.code);
+                fn && fn(a.code);
             },
-            text: function (a, packetName,fn) {
-                if(!source.sourcestate.text[packetName]){
-                    source.sourcestate.text[packetName]=a;
+            text: function (a, packetName, fn) {
+                if (!source.sourcestate.text[packetName]) {
+                    source.sourcestate.text[packetName] = a;
                 }
-                fn&&fn(a);
+                fn && fn(a);
             },
-            image: function (info, packetName,fn) {
+            image: function (info, packetName, fn) {
                 var path = info.path;
                 var _a = document.createElement("img");
                 var _ol = function (e) {
                     e.target.removeEventListener("load", _ol);
                     e.target.removeEventListener("error", _oe);
-                    fn&&fn(e.target);
+                    fn && fn(e.target);
                 };
                 var _oe = function (e) {
                     e.target.removeEventListener("load", _ol);
                     e.target.removeEventListener("error", _oe);
-                    fn&&fn();
+                    fn && fn();
                 };
                 _a.src = path;
                 _a.addEventListener("load", _ol, false);
                 _a.addEventListener("error", _oe, false);
             },
-            json: function (a, packetName,fn) {
-                if(!source.sourcestate.js[packetName]){
-                    source.sourcestate.js[packetName]=JSON.parse(a);
+            json: function (a, packetName, fn) {
+                if (!source.sourcestate.js[packetName]) {
+                    source.sourcestate.js[packetName] = JSON.parse(a);
                 }
-                fn&&fn(JSON.parse(a));
+                fn && fn(JSON.parse(a));
             }
         },
         path: {
@@ -4361,7 +4361,7 @@
     topolr.source = function (b) {
         source.appender.appendSource(b);
     };
-    window.source=source;
+    window.source = source;
     var packetInfo = function () {
         this._packets_ = {};
         this.exports = {};
@@ -4424,7 +4424,7 @@
         return a;
     };
     packetInfo.prototype.getMapSource = function (packetName) {
-        var r = null;
+        var r = null, ps = topolr.promise();
         var e = packetName.split(".");
         e.pop();
         var shortname = e.join(".");
@@ -4443,7 +4443,10 @@
             }
         }
         if (r) {
-            return source.get(packetName, r.sourceType);
+            source.get(packetName, r.sourceType, function (data) {
+                ps.resolve();
+            });
+            return ps;
         } else {
             throw Error("[topolr] can not match the map packet of " + packetName);
         }
@@ -4515,7 +4518,7 @@
     packet.run = function (packetName) {
         this.info = [];
         var ths = this, ps = topolr.promise();
-        this.load(packetName,function () {
+        this.load(packetName, function () {
             var re = packet.dependsSort.call(ths, ths.info);
             if (re.length === ths.info.length) {
                 ths.info = re;
@@ -4737,11 +4740,11 @@
             return str.substring(1);
         });
     };
-    packet.prototype.load = function (pkt,fn) {
+    packet.prototype.load = function (pkt, fn) {
         var ths = this;
         var pathname = source.getPacketPath(pkt, "js");
-        var mtp=source.getActive(pkt, "packet");
-        var doit=function (content) {
+        var mtp = source.getActive(pkt, "packet");
+        var doit = function (content) {
             var aa = packet.getPacketInfo.call(ths, content);
             if (aa.packet === "nopacket") {
                 console.error("[topolr] file has no packet info,path of " + pathname);
@@ -4755,10 +4758,10 @@
             for (var t in ee) {
                 var rtt = aa[ee[t]];
                 for (var i = 0; i < rtt.length; i++) {
-                    var mt=source.getActive(rtt[i].packet, ee[t]);
-                    if(!mt){
+                    var mt = source.getActive(rtt[i].packet, ee[t]);
+                    if (!mt) {
                         queue.add(function (a, b) {
-                            source.get(b.info.packet, b.type,function (it) {
+                            source.get(b.info.packet, b.type, function (it) {
                                 b.info.value = it;
                                 queue.next();
                             });
@@ -4768,14 +4771,14 @@
                             info: rtt[i],
                             type: ee[t]
                         });
-                    }else{
-                        rtt[i].value=mt;
+                    } else {
+                        rtt[i].value = mt;
                     }
                 }
             }
             for (var i = 0; i < aa.require.length; i++) {
                 queue.add(function (a, b) {
-                    ths.load(b.packet,function () {
+                    ths.load(b.packet, function () {
                         queue.next();
                     });
                 }, function (a, b) {
@@ -4786,13 +4789,13 @@
                 });
             }
             queue.complete(function () {
-                fn&&fn();
+                fn && fn();
             }).run();
         };
-        if(mtp){
+        if (mtp) {
             doit(mtp);
-        }else{
-            source.get(pkt, "packet",function(a) {
+        } else {
+            source.get(pkt, "packet", function (a) {
                 doit(a);
             });
         }
@@ -7443,12 +7446,12 @@
                 }
             } else {
                 this.triggerEvent(event);
-                if(!this.isRemoved()){
+                if (!this.isRemoved()) {
                     if (event._goon && this.typeOf("viewgroup")) {
-                        for (var i = 0,len=this.children.length;i<len;i++) {
-                            if(!this.isRemoved()){
+                        for (var i = 0, len = this.children.length; i < len; i++) {
+                            if (!this.isRemoved()) {
                                 this.children[i].dispatchEvent(type, data, false);
-                            }else{
+                            } else {
                                 break;
                             }
                         }
